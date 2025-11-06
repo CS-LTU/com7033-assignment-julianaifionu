@@ -1,0 +1,22 @@
+a {
+  text-decoration: none;
+}
+
+.flash {
+  list-style: none;
+  padding: 0;
+}
+
+.flash li {
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+  border-radius: 6px;
+}
+
+.flash-error {
+  background: #ffe3e3;
+}
+
+.flash-success {
+  background: #e6ffed;
+}
