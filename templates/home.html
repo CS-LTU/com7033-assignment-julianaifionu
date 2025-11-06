@@ -1,7 +1,32 @@
-{% extends "base.html" %} {% block title %} Secure Stroke Prediction App {%
-endblock %} {% block content %}
-<div>
-  <h1>Welcome to Stroke Prediction Web App!</h1>
-  <a href="{{ url_for('login')}}">Sign In</a><br />
+{% extends "base.html" %}
+{% block title %} Secure Stroke Prediction App {% endblock %}
+{% block content %}
+<div class="container mt-4">
+    {% if not user %}
+    <a href="{{ url_for('login') }}" class="btn btn-primary">Sign In</a>
+    {% else %}
+    <h3 class="mb-3">Patient Lists</h3>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                {% for key in patients[0].keys() %}
+                <th scope="col">{{ key | capitalize }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for patient in patients %}
+            <tr>
+                {% for key, value in patient.items() %}
+                <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

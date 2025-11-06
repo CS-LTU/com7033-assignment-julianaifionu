@@ -14,11 +14,12 @@
     />
   </head>
   <body class="bg-light">
-    <nav class="navbar navbar-expand-sm bg-primary">
+    <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
       <div class="container-fluid">
-        <a class="navbar-brand text-white fw-bold" href="{{ url_for('home') }}"
-          >Logo</a
+        <a class="navbar-brand fw-bold text-white" href="{{ url_for('home') }}"
+          >Home</a
         >
+
         <button
           class="navbar-toggler"
           type="button"
@@ -30,22 +31,27 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            {% if email %}
             <li class="nav-item">
-              <a class="nav-link text-white active" href="{{ url_for('home') }}"
-                >Home</a
-              >
+              <span class="nav-link text-white"> {{ email }} </span>
             </li>
+            {% else %}
             <li class="nav-item">
-              <a class="nav-link text-white" href="{{ url_for('login') }}"
+              <a
+                class="nav-link text-white {% if request.endpoint == 'login' %}active{% endif %}"
+                href="{{ url_for('login') }}"
                 >Login</a
               >
             </li>
+            {% endif %}
           </ul>
         </div>
       </div>
     </nav>
+
     <div class="container mt-4">
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
       messages %}

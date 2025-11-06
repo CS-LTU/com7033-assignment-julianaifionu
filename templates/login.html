@@ -1,28 +1,29 @@
-{% extends "base.html" %} {% block title %} Login {% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %} Login {% endblock %}
+{% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-5">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h4 class="text-center mb-3">Sign In</h4>
-        <form method="POST" action="/login">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input id="email" type="text" name="email" class="form-control" />
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              class="form-control"
-            />
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Sign In</button>
-        </form>
-      </div>
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="text-center mb-3">Sign In</h4>
+                <form method="POST" action="/login">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" type="text" name="email" class="form-control"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input
+                                id="password"
+                                type="password"
+                                name="password"
+                                class="form-control"
+                        />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}
