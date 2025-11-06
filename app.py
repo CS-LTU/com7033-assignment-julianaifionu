@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash
 
-from utils.auth import get_user_by_email
+from utils.auth import find_user, get_user_by_email
 
 app = Flask(__name__)
 
@@ -77,20 +77,17 @@ def inject_user():
     Make the logged-in user's details (email & role) globally available
     to all templates.
     """
-    user_email = session.get("user_email")
+    email = session.get("user_email")
 
     # Find user (if logged in)
-    found_user = None
-    if user_email:
-        for user in REGISTERED_USERS:
-            if user["email"] == user_email:
-                found_user = user
-                break
-
-    if not found_user:
+    if not email:
         return dict(email=None, role=None)
 
-    return dict(email=found_user["email"], role=found_user.get("role"))
+    user = get_user_by_email(email, REGISTERED_USERS)
+    if not user:
+        return dict(email=None, role=None)
+
+    return dict(email=user["email"], role=user["role"])
 
 
 # Route for the home page
@@ -100,16 +97,12 @@ def home():
     if not user_email:
         return redirect(url_for("login"))
 
-    found_user = None
-    for user in REGISTERED_USERS:
-        if user["email"] == user_email:
-            found_user = user
-            break
+    user = get_user_by_email(user_email, REGISTERED_USERS)
 
-    if not found_user:
+    if not user:
         return redirect(url_for("login"))
 
-    return render_template("home.html", user=found_user, patients=PATIENTS)
+    return render_template("home.html", user=user, patients=PATIENTS)
 
 
 # Route for login page
@@ -124,7 +117,7 @@ def login():
                 raise ValueError("Please enter both email and password.")
 
             # ----- Check if user exist -----
-            user = get_user_by_email(email, password, REGISTERED_USERS)
+            user = find_user(email, password, REGISTERED_USERS)
             if not user:
                 raise ValueError("Invalid email or password")
 
@@ -140,6 +133,14 @@ def login():
             return redirect(url_for("login"))
 
     return render_template("login.html")
+
+
+# Route for logout
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out successfully.", "info")
+    return redirect(url_for("login"))
 
 
 if __name__ == "__main__":

@@ -20,27 +20,46 @@ def check_password(password_hash, pwd):
     return check_password_hash(password_hash, pwd)
 
 
-def get_user_by_email(
-    email: str, password: str, registered_users: list[dict]
-) -> dict | None:
+def find_user(email: str, password: str, users: list[dict]) -> dict | None:
     """
-    Return the user dict if the email and password match, else None.
+     Authenticate a user by email and password.
 
     Args:
-        email (str): The user's email address.
-        password (str): The user's password (plaintext for now).
-        registered_users (list): The list of registered user dictionaries.
+         email (str): The user's email address (case-insensitive).
+         password (str): The user's plaintext password to verify.
+         users (list[dict]): List of user dictionaries with 'email' and 'password' keys.
 
-    Returns:
-        dict | None: The matched user dictionary, or None if not found.
+     Returns:
+         dict | None: The user dict if credentials are correct, otherwise None.
     """
 
-    # normalize email
+    # Normalize email to make lookup case-insensitive
     email = email.lower()
 
-    for user in registered_users:
+    for user in users:
         if user["email"].lower() == email and check_password(
             user["password"], password
         ):
+            return user
+    return None
+
+
+def get_user_by_email(email: str, users: list[dict]) -> dict | None:
+    """
+    Find a user in the users list by their email address.
+
+    Args:
+        email (str): The email address to search for (case-insensitive).
+        users (list[dict]): List of user dictionaries, each containing an 'email' key.
+
+    Returns:
+        dict | None: The matching user dictionary if found, otherwise None.
+    """
+
+    # Normalize email to avoid case sensitivity issues
+    email = email.lower().strip()
+
+    for user in users:
+        if user["email"].lower() == email:
             return user
     return None
