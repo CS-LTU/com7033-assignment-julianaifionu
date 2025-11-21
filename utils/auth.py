@@ -15,6 +15,7 @@ def check_password(password_hash, pwd):
         bool: True if the passwords match, False otherwise.
     """
     # check_password_hash securely compares the hash and plain text password
+
     if password_hash is None:
         return False
     return check_password_hash(password_hash, pwd)

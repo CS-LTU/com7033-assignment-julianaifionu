@@ -32,6 +32,17 @@
                     >Logout</a
                     >
                 </li>
+
+                {% if role and role=="admin" %}
+                <li class="nav-item">
+                    <a
+                            class="nav-link text-white"
+                            href="{{ url_for('register') }}"
+                    >Create User</a
+                    >
+                </li>
+                {% endif %}
+
                 {% else %}
                 <li class="nav-item">
                     <a
