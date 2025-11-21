@@ -4,9 +4,12 @@ import secrets
 from datetime import datetime, timezone
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
-from werkzeug.security import generate_password_hash
-
-from utils.auth import find_user, get_user_by_email
+from utils.auth import (
+    authenticate_user,
+    get_user_by_email,
+    hash_password,
+    get_user_by_id,
+)
 
 app = Flask(__name__)
 
@@ -20,7 +23,7 @@ REGISTERED_USERS = [
         "first_name": "Julie",
         "last_name": "Smith",
         "email": "admin@admin.com",
-        "password": generate_password_hash("password", method="pbkdf2:sha256"),
+        "password": hash_password("password"),
         "role": "admin",
         "has_activated": True,
         "created_at": datetime.now(timezone.utc),
@@ -67,13 +70,13 @@ def inject_user():
     Make the logged-in user's details (email & role) globally available
     to all templates.
     """
-    email = session.get("user_email")
 
-    # Find user (if logged in)
-    if not email:
+    user_id = session.get("user_id")
+    if not user_id:
         return dict(email=None, role=None)
 
-    user = get_user_by_email(email, REGISTERED_USERS)
+    user = get_user_by_id(user_id, REGISTERED_USERS)
+    
     if not user:
         return dict(email=None, role=None)
 
@@ -83,11 +86,11 @@ def inject_user():
 # Route for the home page
 @app.route("/")
 def home():
-    user_email = session.get("user_email")
-    if not user_email:
+    user_id = session.get("user_id")
+    if not user_id:
         return redirect(url_for("login"))
 
-    user = get_user_by_email(user_email, REGISTERED_USERS)
+    user = get_user_by_id(user_id, REGISTERED_USERS)
 
     if not user:
         return redirect(url_for("login"))
@@ -98,6 +101,11 @@ def home():
 # Route for login page
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    user_id = session.get("user_id")
+
+    if user_id:
+        return redirect(url_for("home"))
+
     if request.method == "POST":
         email = (request.form.get("email") or "").strip()
         password = request.form.get("password") or ""
@@ -106,8 +114,8 @@ def login():
             if not (email and password):
                 raise ValueError("Please enter both email and password.")
 
-            # ----- Check if user exist -----
-            user = find_user(email, password, REGISTERED_USERS)
+            # ----- Authenticate user -----
+            user = authenticate_user(email, password, REGISTERED_USERS)
             if not user:
                 raise ValueError("Invalid email or password")
 
@@ -118,6 +126,7 @@ def login():
                 return redirect(url_for("activate"))
 
             # Normal login flow
+            # set secure session cookies
             session["user_id"] = user["user_id"]
             session["user_email"] = user["email"]
             session["user_role"] = user["role"]
@@ -139,7 +148,7 @@ def logout():
     flash("You have been logged out successfully.", "info")
     return redirect(url_for("login"))
 
-
+# Route for invite / register user
 @app.route("/register", methods=["GET", "POST"])
 def register():
     # Ensure only admins can access this page
@@ -170,7 +179,7 @@ def register():
         new_user = {
             "user_id": len(REGISTERED_USERS) + 1,
             "email": email,
-            "password": generate_password_hash(temp_password, method="pbkdf2:sha256"),
+            "password": hash_password(temp_password),
             "has_activated": False,
             "role": role,
             "first_name": first_name,
@@ -183,12 +192,11 @@ def register():
             "success",
         )
 
-        print(REGISTERED_USERS)
         return redirect(url_for("home"))
 
     return render_template("register.html", temp_password=temp_password)
 
-
+# Route for account activation
 @app.route("/activate", methods=["GET", "POST"])
 def activate():
     user_id = session.get("pending_activation_id")
@@ -206,7 +214,7 @@ def activate():
         new_password = request.form.get("new_password", "").strip()
         confirm_password = request.form.get("confirm_password", "").strip()
 
-        if not new_password or not confirm_password:
+        if not (new_password and confirm_password):
             flash("Please fill in both password fields.", "warning")
             return render_template("activate.html", email=user["email"])
 
@@ -215,7 +223,7 @@ def activate():
             return render_template("activate.html", email=user["email"])
 
         # Update password and mark account as activated
-        user["password"] = generate_password_hash(new_password)
+        user["password"] = hash_password(new_password)
         user["has_activated"] = True
         session.pop("pending_activation_id", None)
 
