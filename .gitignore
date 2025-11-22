@@ -13,3 +13,6 @@ env/
 .DS_Store
 .idea
 Thumbs.db
+
+# database
+stroke_tracker.db

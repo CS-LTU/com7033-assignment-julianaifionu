@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import re
 import secrets
 from datetime import datetime, timezone
@@ -10,11 +11,16 @@ from utils.auth import (
     hash_password,
     get_user_by_id,
 )
+from utils.config import Config
+from utils.db_sqlite import get_db, init_sqlite_db
+
 
 app = Flask(__name__)
 
 # set STROKE_APP_SECRET_KEY via environment variable
-app.secret_key = os.environ.get("STROKE_APP_SECRET_KEY", "my_dev_secret_key")
+app.secret_key = Config.SECRET_KEY
+
+init_sqlite_db()
 
 # ---------- Simple in-memory storage ----------
 REGISTERED_USERS = [
@@ -29,6 +35,7 @@ REGISTERED_USERS = [
         "created_at": datetime.now(timezone.utc),
     }
 ]
+
 
 PATIENTS = [
     {
@@ -76,7 +83,7 @@ def inject_user():
         return dict(email=None, role=None)
 
     user = get_user_by_id(user_id, REGISTERED_USERS)
-    
+
     if not user:
         return dict(email=None, role=None)
 
@@ -148,6 +155,7 @@ def logout():
     flash("You have been logged out successfully.", "info")
     return redirect(url_for("login"))
 
+
 # Route for invite / register user
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -161,40 +169,46 @@ def register():
     if request.method == "POST":
         first_name = request.form.get("first_name", "").strip()
         last_name = request.form.get("last_name", "").strip()
-        email = request.form.get("email", "").lower().strip()
-        role = request.form.get("role", "").lower().strip()
+        email = request.form.get("email", "").strip().lower()
+        role = request.form.get("role", "").strip().lower()
 
         # Validate required fields
         if not (first_name and last_name and email and role):
             flash("All fields are required.", "warning")
             return render_template("register.html")
 
-        user = get_user_by_email(email, REGISTERED_USERS)
+        # Check for existing user
+        user = get_user_by_email(email)
 
         if user:
             flash("A user with that email already exists.", "danger")
             return render_template("register.html")
+        try:
+            conn = get_db()
+            cur = conn.cursor()
 
-        # Add new user
-        new_user = {
-            "user_id": len(REGISTERED_USERS) + 1,
-            "email": email,
-            "password": hash_password(temp_password),
-            "has_activated": False,
-            "role": role,
-            "first_name": first_name,
-            "last_name": last_name,
-        }
-        REGISTERED_USERS.append(new_user)
+            cur.execute(
+                "INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+                (first_name, last_name, email, temp_password, role),
+            )
+            conn.commit()
+            conn.close()
 
-        flash(
-            f"✅ {first_name} {last_name} registered successfully! Temp password: {temp_password}",
-            "success",
-        )
+            flash(
+                f"Registered successfully! Temp password: {temp_password}",
+                "success",
+            )
+            return redirect(url_for("home"))
 
-        return redirect(url_for("home"))
+        except sqlite3.IntegrityError:
+            flash(
+                f"User already exist",
+                "danger",
+            )
+            return redirect(url_for("register"))
 
     return render_template("register.html", temp_password=temp_password)
+
 
 # Route for account activation
 @app.route("/activate", methods=["GET", "POST"])

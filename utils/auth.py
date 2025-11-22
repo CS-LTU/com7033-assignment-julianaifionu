@@ -1,4 +1,5 @@
 import bcrypt
+from utils.db_sqlite import get_db
 
 """Authentication utility functions."""
 
@@ -37,7 +38,9 @@ def check_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password)
 
 
-def authenticate_user(email: str, plain_password: str, users: list[dict]) -> dict | None:
+def authenticate_user(
+    email: str, plain_password: str, users: list[dict]
+) -> dict | None:
     """
      Authenticate a user by email and password.
 
@@ -61,25 +64,26 @@ def authenticate_user(email: str, plain_password: str, users: list[dict]) -> dic
     return None
 
 
-def get_user_by_email(email: str, users: list[dict]) -> dict | None:
+def get_user_by_email(email: str) -> dict | None:
     """
-    Find a user in the users list by their email address.
+    Find a user by their email address from the users table.
 
     Args:
         email (str): The email address to search for (case-insensitive).
-        users (list[dict]): List of user dictionaries, each containing an 'email' key.
-
     Returns:
         dict | None: The matching user dictionary if found, otherwise None.
     """
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+    user = cur.fetchone()
+    
+    conn.close()
 
-    # Normalize email to avoid case sensitivity issues
-    email = email.lower().strip()
+    return user
 
-    for user in users:
-        if user["email"].lower() == email:
-            return user
-    return None
 
 def get_user_by_id(id: str, users: list[dict]) -> dict | None:
     """
