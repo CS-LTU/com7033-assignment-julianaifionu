@@ -1,8 +1,5 @@
-import os
 import sqlite3
-import re
 import secrets
-from datetime import datetime, timezone
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from utils.auth import (
@@ -12,30 +9,14 @@ from utils.auth import (
     get_user_by_id,
 )
 from utils.config import Config
-from utils.db_sqlite import get_db, init_sqlite_db
-
+from utils.db_sqlite import get_db
+from utils.initialize import initialize
+from utils.decorators import admin_required, login_required
 
 app = Flask(__name__)
-
-# set STROKE_APP_SECRET_KEY via environment variable
 app.secret_key = Config.SECRET_KEY
 
-init_sqlite_db()
-
-# ---------- Simple in-memory storage ----------
-REGISTERED_USERS = [
-    {
-        "user_id": 1,
-        "first_name": "Julie",
-        "last_name": "Smith",
-        "email": "admin@admin.com",
-        "password": hash_password("password"),
-        "role": "admin",
-        "has_activated": True,
-        "created_at": datetime.now(timezone.utc),
-    }
-]
-
+initialize()
 
 PATIENTS = [
     {
@@ -67,37 +48,32 @@ PATIENTS = [
     },
 ]
 
-# ---------- Email Validation Pattern ----------
-EMAIL_PATTERN = re.compile(r"^[\w\.-]+@[\w\.-]+\.[A-Za-z]{2,}$")
-
 
 @app.context_processor
 def inject_user():
     """
-    Make the logged-in user's details (email & role) globally available
+    Make the logged-in user's first name and role globally available
     to all templates.
     """
 
     user_id = session.get("user_id")
     if not user_id:
-        return dict(email=None, role=None)
+        return dict(fist_name=None, role=None)
 
-    user = get_user_by_id(user_id, REGISTERED_USERS)
+    user = get_user_by_id(user_id)
 
     if not user:
-        return dict(email=None, role=None)
+        return dict(first_name=None, role=None)
 
-    return dict(email=user["email"], role=user["role"])
+    return dict(first_name=user["first_name"], role=user["role"])
 
 
 # Route for the home page
 @app.route("/")
+@login_required
 def home():
     user_id = session.get("user_id")
-    if not user_id:
-        return redirect(url_for("login"))
-
-    user = get_user_by_id(user_id, REGISTERED_USERS)
+    user = get_user_by_id(user_id)
 
     if not user:
         return redirect(url_for("login"))
@@ -122,20 +98,19 @@ def login():
                 raise ValueError("Please enter both email and password.")
 
             # ----- Authenticate user -----
-            user = authenticate_user(email, password, REGISTERED_USERS)
+            user = authenticate_user(email, password)
             if not user:
                 raise ValueError("Invalid email or password")
 
             # if the user hasn't activated their account yet
-            if not user["has_activated"]:
-                session["pending_activation_id"] = user["user_id"]
+            if not user["is_active"]:
+                session["pending_activation_id"] = user["id"]
                 flash("Please activate your account before continuing.", "info")
                 return redirect(url_for("activate"))
 
             # Normal login flow
             # set secure session cookies
-            session["user_id"] = user["user_id"]
-            session["user_email"] = user["email"]
+            session["user_id"] = user["id"]
             session["user_role"] = user["role"]
 
             flash(f"✅ Logged in successfully!", "success")
@@ -158,38 +133,35 @@ def logout():
 
 # Route for invite / register user
 @app.route("/register", methods=["GET", "POST"])
+@admin_required
 def register():
-    # Ensure only admins can access this page
-    if session.get("user_role") != "admin":
-        flash("Access denied: Only admins can register new users.", "danger")
-        return redirect(url_for("home"))
+    try:
+        temp_password = str(secrets.token_hex(4))
 
-    temp_password = str(secrets.token_hex(4))
+        if request.method == "POST":
+            first_name = request.form.get("first_name", "").strip()
+            last_name = request.form.get("last_name", "").strip()
+            email = request.form.get("email", "").strip().lower()
+            role = request.form.get("role", "").strip().lower()
 
-    if request.method == "POST":
-        first_name = request.form.get("first_name", "").strip()
-        last_name = request.form.get("last_name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        role = request.form.get("role", "").strip().lower()
+            # Validate required fields
+            if not (first_name and last_name and email and role):
+                raise ValueError("All fields are required.")
 
-        # Validate required fields
-        if not (first_name and last_name and email and role):
-            flash("All fields are required.", "warning")
-            return render_template("register.html")
+            if not Config.EMAIL_PATTERN.fullmatch(email):
+                raise ValueError("Email format is invalid.")
 
-        # Check for existing user
-        user = get_user_by_email(email)
+            # Check for existing user
+            user = get_user_by_email(email)
+            if user:
+                raise ValueError("A user with this email already exists.")
 
-        if user:
-            flash("A user with that email already exists.", "danger")
-            return render_template("register.html")
-        try:
             conn = get_db()
             cur = conn.cursor()
 
             cur.execute(
                 "INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-                (first_name, last_name, email, temp_password, role),
+                (first_name, last_name, email, hash_password(temp_password), role),
             )
             conn.commit()
             conn.close()
@@ -200,12 +172,15 @@ def register():
             )
             return redirect(url_for("home"))
 
-        except sqlite3.IntegrityError:
-            flash(
-                f"User already exist",
-                "danger",
-            )
-            return redirect(url_for("register"))
+    except sqlite3.IntegrityError:
+        flash(
+            "User already exists.",
+            "danger",
+        )
+        return redirect(url_for("register"))
+
+    except ValueError as e:
+        flash(str(e), "danger")
 
     return render_template("register.html", temp_password=temp_password)
 
@@ -219,7 +194,7 @@ def activate():
         return redirect(url_for("login"))
 
     # Find the user
-    user = next((u for u in REGISTERED_USERS if u["user_id"] == user_id), None)
+    user = get_user_by_id(user_id)
     if not user:
         flash("User not found.", "danger")
         return redirect(url_for("login"))
@@ -236,12 +211,26 @@ def activate():
             flash("Passwords do not match.", "danger")
             return render_template("activate.html", email=user["email"])
 
-        # Update password and mark account as activated
-        user["password"] = hash_password(new_password)
-        user["has_activated"] = True
-        session.pop("pending_activation_id", None)
+        if len(new_password) < 8:
+            flash("Password must be at least 8 characters.", "danger")
+            return render_template("activate.html", email=user["email"])
 
-        print(REGISTERED_USERS)
+        # Update password and mark account as activated
+        password_hash = hash_password(new_password)
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+						UPDATE users
+						SET password_hash = ?, is_active = ?
+						WHERE id = ?
+    				""",
+            (password_hash, True, user["id"]),
+        )
+        conn.commit()
+        conn.close()
+
+        session.pop("pending_activation_id", None)
 
         flash("Account activated! You can now log in.", "success")
         return redirect(url_for("login"))

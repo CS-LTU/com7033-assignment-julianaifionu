@@ -18,9 +18,9 @@
 
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-				{% if email %}
+				{% if first_name and role %}
 				<li class="nav-item">
-					<span class="nav-link text-white"> {{ email }} </span>
+					<span class="nav-link text-white"> {{ first_name }} </span>
 				</li>
 				<li class="nav-item">
 					<span class="nav-link text-white"> {{ role }} </span>
@@ -31,7 +31,7 @@
 					>
 				</li>
 
-				{% if role and role=="admin" %}
+				{% if role=="admin" %}
 				<li class="nav-item">
 					<a class="nav-link text-white" href="{{ url_for('register') }}"
 						>Create User</a

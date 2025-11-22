@@ -4,64 +4,54 @@ from utils.db_sqlite import get_db
 """Authentication utility functions."""
 
 
-def hash_password(plain_password: str):
+def hash_password(plain_password: str) -> str:
     """
     Hash user's plain text password using bcrypt.
 
     Args:
         plain_password (str): The plain text password entered by the user during registration.
-
     Returns:
-        bytes: hashed password.
+        str: password in a string format.
     """
     password_bytes = plain_password.encode("utf-8")
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password_bytes, salt)
-    return hashed_password
+    return hashed_password.decode("utf-8")
 
 
-def check_password(plain_password, hashed_password):
+def check_password(plain_password: str, password_hash: str) -> bool:
     """
     Compare a stored password hash with a user-provided password.
 
     Args:
         plain_password (str): The plain text password entered by the user during login.
-        hashed_password (str): The hashed password retrieved from the database.
-
+        password_hash (str): The hashed password retrieved from the database.
     Returns:
         bool: True if the passwords match, False otherwise.
     """
 
-    # check_password_hash securely compares the hash and plain text password
-    if hashed_password is None or plain_password is None:
+    if not (password_hash and plain_password):
         return False
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password)
+    return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
-def authenticate_user(
-    email: str, plain_password: str, users: list[dict]
-) -> dict | None:
+def authenticate_user(email: str, plain_password: str) -> dict | None:
     """
      Authenticate a user by email and password.
 
     Args:
          email (str): The user's email address (case-insensitive).
          plain_password (str): The user's plaintext password to verify.
-         users (list[dict]): List of user dictionaries with 'email' and 'password' keys.
-
      Returns:
-         dict | None: The user dict if credentials are correct, otherwise None.
+         dict | None: The user dict from the database if credentials are correct, otherwise None.
     """
+    user = get_user_by_email(email)
+    if not user:
+        return None
 
-    # Normalize email to make lookup case-insensitive
-    email = email.lower()
-
-    for user in users:
-        if user["email"].lower() == email and check_password(
-            plain_password, user["password"]
-        ):
-            return user
-    return None
+    if not (check_password(plain_password, user["password_hash"])):
+        return None
+    return user
 
 
 def get_user_by_email(email: str) -> dict | None:
@@ -73,31 +63,34 @@ def get_user_by_email(email: str) -> dict | None:
     Returns:
         dict | None: The matching user dictionary if found, otherwise None.
     """
-    
+
     conn = get_db()
     cur = conn.cursor()
-    
+
     cur.execute("SELECT * FROM users WHERE email = ?", (email,))
     user = cur.fetchone()
-    
+
     conn.close()
 
     return user
 
 
-def get_user_by_id(id: str, users: list[dict]) -> dict | None:
+def get_user_by_id(user_id: str) -> dict | None:
     """
-    Find a user in the users list by user id.
+    Find a user by id from the users table.
 
     Args:
         id (str): The user id to search for.
-        users (list[dict]): List of user dictionaries, each containing an 'id' key.
-
     Returns:
         dict | None: The matching user dictionary if found, otherwise None.
     """
 
-    for user in users:
-        if user["user_id"] == id:
-            return user
-    return None
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    user = cur.fetchone()
+
+    conn.close()
+
+    return user
