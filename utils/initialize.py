@@ -6,8 +6,6 @@ from utils.services_logging import log_action
 
 
 def initialize():
-    conn = None
-
     try:
         init_sqlite_db()
 
@@ -50,23 +48,13 @@ def initialize():
             )
 
             conn.commit()
+            conn.close()
 
     except ValueError as e:
         print(str(e))
 
     except sqlite3.Error as e:
         print(f"SQLite error during initialization: {e}")
-        if conn:
-            conn.rollback()
 
     except Exception as e:
         print(f"Unexpected error during initialization: {e}")
-        if conn:
-            conn.rollback()
-
-    finally:
-        if conn:
-            try:
-                conn.close()
-            except:
-                pass

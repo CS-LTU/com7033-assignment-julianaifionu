@@ -4,15 +4,18 @@ import secrets
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from utils.auth import (
     authenticate_user,
-    get_user_by_email,
-    hash_password,
     get_user_by_id,
 )
 from utils.config import Config
-from utils.db_sqlite import get_db
 from utils.initialize import initialize
 from utils.decorators import admin_required, login_required
 from utils.services_logging import log_action
+from utils.queries import create_user, update_user_activation
+from utils.validations import (
+    validate_registration_form,
+    validate_login_form,
+    validate_activation_passwords,
+)
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
@@ -110,8 +113,7 @@ def login_post():
     password = request.form.get("password") or ""
 
     try:
-        if not (email and password):
-            raise ValueError("Please enter both email and password.")
+        validate_login_form(email, password)
 
         user = authenticate_user(email, password)
         if not user:
@@ -126,12 +128,17 @@ def login_post():
         session["user_id"] = user["id"]
         session["user_role"] = user["role"]
 
-        flash("Logged in successfully!", "success")
         log_action(
             "LOGIN",
             session.get("user_id"),
-            {"first_name": user["first_name"]},
+            {
+                "login_user_id": user["id"],
+                "login_user_email": user["email"],
+                "login_user_role": user["role"],
+            },
         )
+
+        flash("Logged in successfully!", "success")
         return redirect(url_for("home"))
 
     except ValueError as e:
@@ -154,67 +161,37 @@ def register_get():
 @app.route("/register", methods=["POST"])
 @admin_required
 def register_post():
+    temp_password = str(secrets.token_hex(4))
+
+    first_name = request.form.get("first_name", "").strip()
+    last_name = request.form.get("last_name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    role = request.form.get("role", "").strip().lower()
+
     try:
-        temp_password = str(secrets.token_hex(4))
+        validate_registration_form(first_name, last_name, email, role)
+        new_user_id = create_user(first_name, last_name, email, role, temp_password)
 
-        first_name = request.form.get("first_name", "").strip()
-        last_name = request.form.get("last_name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        role = request.form.get("role", "").strip().lower()
-
-        if not (first_name and last_name and email and role):
-            raise ValueError("All fields are required.")
-
-        if not Config.EMAIL_PATTERN.fullmatch(email):
-            raise ValueError("Email format is invalid.")
-
-        # Check existing user
-        user = get_user_by_email(email)
-        if user:
-            raise ValueError("A user with this email already exists.")
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute(
-            """
-            INSERT INTO users 
-            (first_name, last_name, email, password_hash, role)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (first_name, last_name, email, hash_password(temp_password), role),
+        log_action(
+            "REGISTER",
+            session.get("user_id"),
+            {
+                "created_user_id": new_user_id,
+                "created_user_email": email,
+                "created_user_role": role,
+            },
         )
 
-        action_performer = get_user_by_id(session.get("user_id"))
-        if action_performer:
-            log_action(
-                "REGISTER",
-                action_performer["id"],
-                {"first_name": action_performer["first_name"]},
-            )
-            conn.commit()
-            conn.close()
+        flash(f"Registered successfully! Temp password: {temp_password}", "success")
+        return redirect(url_for("home"))
 
-            flash(
-                f"Registered successfully! Temp password: {temp_password}",
-                "success",
-            )
-            return redirect(url_for("home"))
-        else:
-            conn.rollback()
-            raise ValueError("The action performaer could not be identified.")
-
-    except sqlite3.IntegrityError:
-        flash("User already exists.", "danger")
-        conn.rollback()
+    except sqlite3.Error:
+        flash("Database error occurred.", "danger")
         return redirect(url_for("register_get"))
 
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("register_get"))
-
-    finally:
-        conn.close()
 
 
 # -----------------------------
@@ -253,37 +230,21 @@ def activate_post():
         new_password = request.form.get("new_password", "").strip()
         confirm_password = request.form.get("confirm_password", "").strip()
 
-        if not (new_password and confirm_password):
-            raise ValueError("Please fill in all password fields.")
+        validate_activation_passwords(new_password, confirm_password)
 
-        if new_password != confirm_password:
-            raise ValueError("Passwords do not match.")
+        update_user_activation(user_id, new_password)
 
-        if len(new_password) < 8:
-            raise ValueError("Password must be at least 8 characters long.")
-
-        # Hash new password
-        password_hash = hash_password(new_password)
-
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            UPDATE users
-            SET password_hash = ?, is_active = ?
-            WHERE id = ?
-            """,
-            (password_hash, True, user_id),
-        )
-        conn.commit()
         log_action(
             "ACTIVATE",
             user_id,
-            {"first_name": user["first_name"]},
+            {
+                "user_email": user["email"],
+                "user_role": user["role"],
+            },
         )
 
         # Clean up activation session
-        session.clear()
+        session.pop("pending_activation_id", None)
 
         flash("Account activated! You can now log in.", "success")
         return redirect(url_for("login_get"))
@@ -292,13 +253,13 @@ def activate_post():
         flash(str(e), "danger")
         return redirect(url_for("activate_get"))
 
-    except sqlite3.IntegrityError:
-        flash("An unexpected database error occurred.", "danger")
-        conn.rollback()
+    except sqlite3.Error:
+        flash("Database error occurred during activation.", "danger")
         return redirect(url_for("activate_get"))
 
-    finally:
-        conn.close()
+    except Exception:
+        flash("An unexpected error occurred.", "danger")
+        return redirect(url_for("activate_get"))
 
 
 # --------------------------------------

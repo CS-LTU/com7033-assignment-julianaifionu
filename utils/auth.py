@@ -72,7 +72,6 @@ def get_user_by_email(email: str) -> dict | None:
     if not email:
         return None
 
-    conn = None
     email = email.strip().lower()
 
     try:
@@ -81,18 +80,12 @@ def get_user_by_email(email: str) -> dict | None:
 
         cur.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = cur.fetchone()
+        conn.close()
 
         return user
 
     except (Exception, sqlite3.Error):
         return None
-
-    finally:
-        if conn:
-            try:
-                conn.close()
-            except:
-                pass
 
 
 def get_user_by_id(user_id: int) -> dict | None:
@@ -108,23 +101,15 @@ def get_user_by_id(user_id: int) -> dict | None:
     if not user_id:
         return None
 
-    conn = None
-
     try:
         conn = get_db()
         cur = conn.cursor()
 
         cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         user = cur.fetchone()
+        conn.close()
 
         return user
 
-    except sqlite3.Error:
+    except (Exception, sqlite3.Error):
         return None
-
-    finally:
-        if conn:
-            try:
-                conn.close()
-            except:
-                pass
