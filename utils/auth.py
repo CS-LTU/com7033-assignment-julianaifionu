@@ -1,4 +1,4 @@
-import bcrypt
+import bcrypt, sqlite3
 from utils.db_sqlite import get_db
 
 """Authentication utility functions."""
@@ -37,7 +37,7 @@ def check_password(plain_password: str, password_hash: str) -> bool:
 
 def authenticate_user(email: str, plain_password: str) -> dict | None:
     """
-     Authenticate a user by email and password.
+    Authenticate a user by email and password.
 
     Args:
          email (str): The user's email address (case-insensitive).
@@ -45,7 +45,12 @@ def authenticate_user(email: str, plain_password: str) -> dict | None:
      Returns:
          dict | None: The user dict from the database if credentials are correct, otherwise None.
     """
+
+    if not (email and plain_password):
+        return None
+
     user = get_user_by_email(email)
+
     if not user:
         return None
 
@@ -64,33 +69,62 @@ def get_user_by_email(email: str) -> dict | None:
         dict | None: The matching user dictionary if found, otherwise None.
     """
 
-    conn = get_db()
-    cur = conn.cursor()
+    if not email:
+        return None
 
-    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-    user = cur.fetchone()
+    conn = None
+    email = email.strip().lower()
 
-    conn.close()
+    try:
+        conn = get_db()
+        cur = conn.cursor()
 
-    return user
+        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+        user = cur.fetchone()
+
+        return user
+
+    except (Exception, sqlite3.Error):
+        return None
+
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass
 
 
-def get_user_by_id(user_id: str) -> dict | None:
+def get_user_by_id(user_id: int) -> dict | None:
     """
     Find a user by id from the users table.
 
     Args:
-        id (str): The user id to search for.
+        user_id (int): The user id to search for.
     Returns:
         dict | None: The matching user dictionary if found, otherwise None.
     """
 
-    conn = get_db()
-    cur = conn.cursor()
+    if not user_id:
+        return None
 
-    cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-    user = cur.fetchone()
+    conn = None
 
-    conn.close()
+    try:
+        conn = get_db()
+        cur = conn.cursor()
 
-    return user
+        cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        user = cur.fetchone()
+
+        return user
+
+    except sqlite3.Error:
+        return None
+
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass

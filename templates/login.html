@@ -5,7 +5,7 @@ content %}
 		<div class="card shadow-sm">
 			<div class="card-body">
 				<h4 class="text-center mb-3">Sign In</h4>
-				<form method="POST" action="/login">
+				<form method="POST" action="{{ url_for('login_post') }}">
 					<div class="mb-3">
 						<label for="email" class="form-label">Email</label>
 						<input id="email" type="text" name="email" class="form-control" />

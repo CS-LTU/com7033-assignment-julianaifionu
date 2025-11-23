@@ -1,9 +1,6 @@
 {% extends "base.html" %} {% block title %} Secure Stroke Prediction App {%
 endblock %} {% block content %}
 <div class="container mt-4">
-	{% if not user %}
-	<a href="{{ url_for('login') }}" class="btn btn-primary">Sign In</a>
-	{% else %}
 	<h3 class="mb-3">Patient Lists</h3>
 
 	<div class="table-responsive">
@@ -26,6 +23,5 @@ endblock %} {% block content %}
 			</tbody>
 		</table>
 	</div>
-	{% endif %}
 </div>
 {% endblock %}

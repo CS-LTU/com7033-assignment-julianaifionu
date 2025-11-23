@@ -3,7 +3,6 @@
 		<a class="navbar-brand fw-bold text-white" href="{{ url_for('home') }}"
 			>Home</a
 		>
-
 		<button
 			class="navbar-toggler"
 			type="button"
@@ -25,21 +24,26 @@
 				<li class="nav-item">
 					<span class="nav-link text-white"> {{ role }} </span>
 				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="{{ url_for('logout') }}"
-						>Logout</a
-					>
-				</li>
 
 				{% if role=="admin" %}
 				<li class="nav-item">
-					<a class="nav-link text-white" href="{{ url_for('register') }}"
+					<a class="nav-link text-white" href="{{ url_for('register_get') }}"
 						>Create User</a
 					>
 				</li>
-				{% endif %} {% else %}
+				{% endif %}
+
 				<li class="nav-item">
-					<a class="nav-link text-white" href="{{ url_for('login') }}">Login</a>
+					<form action="{{ url_for('logout') }}" method="POST">
+						<button type="submit" class="btn btn-danger">Logout</button>
+					</form>
+				</li>
+
+				{% else %}
+				<li class="nav-item">
+					<a class="nav-link text-white" href="{{ url_for('login_get') }}"
+						>Login</a
+					>
 				</li>
 				{% endif %}
 			</ul>

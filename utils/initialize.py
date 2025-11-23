@@ -1,15 +1,18 @@
-import os
+import sqlite3
 from utils.db_sqlite import init_sqlite_db, get_db
 from utils.auth import hash_password
 from utils.config import Config
 
 
 def initialize():
-    init_sqlite_db()
-    conn = get_db()
-    cur = conn.cursor()
+    conn = None
 
     try:
+        init_sqlite_db()
+
+        conn = get_db()
+        cur = conn.cursor()
+
         # Check if an admin already exists
         cur.execute("SELECT COUNT(1) FROM users WHERE role = ?", ("admin",))
         has_admin = cur.fetchone()[0] > 0
@@ -37,8 +40,23 @@ def initialize():
                 ),
             )
             conn.commit()
-    except (ValueError, Exception) as e:
-        print("Admin initialization error")
-        conn.rollback()
+
+    except ValueError as e:
+        print(str(e))
+
+    except sqlite3.Error:
+        print(f"SQLite error during initialization: {e}")
+        if conn:
+            conn.rollback()
+
+    except Exception as e:
+        print(f"Unexpected error during initialization: {e}")
+        if conn:
+            conn.rollback()
+
     finally:
-        conn.close()
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass

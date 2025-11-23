@@ -7,7 +7,7 @@ def login_required(f):
     def wrapper(*args, **kwargs):
         if not session.get("user_id"):
             flash("Please log in first.", "warning")
-            return redirect(url_for("login"))
+            return redirect(url_for("login_get"))
         return f(*args, **kwargs)
 
     return wrapper
@@ -21,7 +21,7 @@ def admin_required(f):
 
         if not user_id:
             flash("Please log in first.", "warning")
-            return redirect(url_for("login"))
+            return redirect(url_for("login_get"))
 
         if user_role and user_role != "admin":
             flash("Admin access required.", "danger")
