@@ -12,6 +12,7 @@ from utils.config import Config
 from utils.db_sqlite import get_db
 from utils.initialize import initialize
 from utils.decorators import admin_required, login_required
+from utils.services_logging import log_action
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
@@ -126,6 +127,11 @@ def login_post():
         session["user_role"] = user["role"]
 
         flash("Logged in successfully!", "success")
+        log_action(
+            "LOGIN",
+            session.get("user_id"),
+            {"first_name": user["first_name"]},
+        )
         return redirect(url_for("home"))
 
     except ValueError as e:
@@ -179,13 +185,24 @@ def register_post():
             (first_name, last_name, email, hash_password(temp_password), role),
         )
 
-        conn.commit()
+        action_performer = get_user_by_id(session.get("user_id"))
+        if action_performer:
+            log_action(
+                "REGISTER",
+                action_performer["id"],
+                {"first_name": action_performer["first_name"]},
+            )
+            conn.commit()
+            conn.close()
 
-        flash(
-            f"Registered successfully! Temp password: {temp_password}",
-            "success",
-        )
-        return redirect(url_for("home"))
+            flash(
+                f"Registered successfully! Temp password: {temp_password}",
+                "success",
+            )
+            return redirect(url_for("home"))
+        else:
+            conn.rollback()
+            raise ValueError("The action performaer could not be identified.")
 
     except sqlite3.IntegrityError:
         flash("User already exists.", "danger")
@@ -259,6 +276,11 @@ def activate_post():
             (password_hash, True, user_id),
         )
         conn.commit()
+        log_action(
+            "ACTIVATE",
+            user_id,
+            {"first_name": user["first_name"]},
+        )
 
         # Clean up activation session
         session.clear()

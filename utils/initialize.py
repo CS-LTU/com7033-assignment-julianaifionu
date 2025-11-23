@@ -2,6 +2,7 @@ import sqlite3
 from utils.db_sqlite import init_sqlite_db, get_db
 from utils.auth import hash_password
 from utils.config import Config
+from utils.services_logging import log_action
 
 
 def initialize():
@@ -39,12 +40,21 @@ def initialize():
                     True,
                 ),
             )
+            admin_id = cur.lastrowid
+
+            # Log the action
+            log_action(
+                "REGISTER",
+                admin_id,
+                {"first_name": "System", "email": email},
+            )
+
             conn.commit()
 
     except ValueError as e:
         print(str(e))
 
-    except sqlite3.Error:
+    except sqlite3.Error as e:
         print(f"SQLite error during initialization: {e}")
         if conn:
             conn.rollback()

@@ -11,3 +11,8 @@ class Config:
     BASE_DIR = os.getcwd()
     DB_PATH = os.path.join(BASE_DIR, "stroke_tracker.db")
     EMAIL_PATTERN = re.compile(r"^[\w\.-]+@[\w\.-]+\.[A-Za-z]{2,}$")
+
+    # Mongo
+    MONGO_URI = os.environ.get("MONGO_URI")
+    MONGO_DB = "stroke_tracker_db"
+    MONGO_LOGS_COL = "logs"
