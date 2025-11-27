@@ -1,56 +1,38 @@
 import sqlite3
-import secrets
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from utils.auth import (
     authenticate_user,
     get_user_by_id,
+    create_clinician_profile,
 )
 from utils.config import Config
 from utils.initialize import initialize
 from utils.decorators import admin_required, login_required
 from utils.services_logging import log_action
-from utils.queries import create_user, update_user_activation
+from utils.queries import (
+    create_user,
+    update_user_activation,
+    get_all_clinicians,
+    get_all_patients,
+    get_all_patients_for_clinician,
+)
 from utils.validations import (
     validate_registration_form,
     validate_login_form,
     validate_activation_passwords,
 )
+from utils.activation import (
+    generate_activation_token,
+    get_valid_activation_user,
+    mark_token_used,
+)
+from utils.current_user import get_current_user
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
 
 initialize()
-
-PATIENTS = [
-    {
-        "patient_id": 1,
-        "username": "mary",
-        "gender": "female",
-        "age": 34,
-        "ever_married": True,
-        "work_type": "private",
-        "residence_type": "Urban",
-    },
-    {
-        "patient_id": 2,
-        "username": "John",
-        "gender": "male",
-        "age": 52,
-        "ever_married": True,
-        "work_type": "govt_job",
-        "residence_type": "Rural",
-    },
-    {
-        "patient_id": 3,
-        "username": "Jane",
-        "gender": "female",
-        "age": 12,
-        "ever_married": False,
-        "work_type": "children",
-        "residence_type": "Urban",
-    },
-]
 
 
 # --------------------------------------
@@ -59,35 +41,79 @@ PATIENTS = [
 @app.context_processor
 def inject_user():
     """
-    Make the logged-in user's first name and role globally available
+    Make logged-in user's username and role name globally available
     to all templates.
     """
+    current_user = get_current_user()
 
-    user_id = session.get("user_id")
-    if not user_id:
-        return dict(fist_name=None, role=None)
+    if not current_user:
+        return dict(username=None, role_name=None)
 
-    user = get_user_by_id(user_id)
-
-    if not user:
-        return dict(first_name=None, role=None)
-
-    return dict(first_name=user["first_name"], role=user["role"])
+    return dict(username=current_user["username"], role_name=current_user["role_name"])
 
 
 # --------------------------------------
-# GET: Show home page
+# GET: Handle the index page
 # --------------------------------------
-@app.route("/")
+@app.route("/", methods=["GET"])
 @login_required
-def home():
-    user_id = session.get("user_id")
-    user = get_user_by_id(user_id)
+def index():
+    current_user = get_current_user()
+    
+    if current_user and current_user["role_name"] == "admin":
+        return redirect(url_for("admin_dashboard"))
 
-    if not user:
-        return redirect(url_for("login_get"))
+    return redirect(url_for("dashboard"))
 
-    return render_template("home.html", user=user, patients=PATIENTS)
+
+# --------------------------------------
+# GET: Show admin dashboard page
+# --------------------------------------
+@app.route("/admin/dashboard", methods=["GET"])
+@login_required
+@admin_required
+def admin_dashboard():
+    user = get_current_user()
+
+    try:
+        clinicians = get_all_clinicians()
+        patients = get_all_patients()
+
+        return render_template(
+            "admin/dashboard.html",
+            user=user,
+            clinicians=clinicians,
+            patients=patients,
+        )
+    except sqlite3.Error:
+        flash("An error occurred while loading dashboard data", "danger")
+        return render_template(
+            "admin/dashboard.html", user=user, clinicians=[], patients=[]
+        )
+
+
+# --------------------------------------
+# GET: Show clinician dashboard page
+# --------------------------------------
+@app.route("/dashboard", methods=["GET"])
+@login_required
+def dashboard():
+    try:
+        user = get_current_user()
+
+        if not user:
+            return redirect(url_for("login_get"))
+
+        if user["role_name"] == "admin":
+            return redirect(url_for("admin_dashboard"))
+
+        patients = get_all_patients_for_clinician(user["id"])
+
+        return render_template("dashboard.html", user=user, patients=patients)
+
+    except sqlite3.Error:
+        flash(f"An error occurred while loading dashboard data", "danger")
+        return render_template("dashboard.html", user=user, patients=[])
 
 
 # --------------------------------------
@@ -96,7 +122,7 @@ def home():
 @app.route("/login", methods=["GET"])
 def login_get():
     if session.get("user_id"):
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard"))
 
     return render_template("login.html")
 
@@ -107,39 +133,40 @@ def login_get():
 @app.route("/login", methods=["POST"])
 def login_post():
     if session.get("user_id"):
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard"))
 
-    email = (request.form.get("email") or "").strip().lower()
+    username = (request.form.get("username") or "").strip()
     password = request.form.get("password") or ""
 
     try:
-        validate_login_form(email, password)
+        validate_login_form(username, password)
 
-        user = authenticate_user(email, password)
+        user = authenticate_user(username, password)
         if not user:
-            raise ValueError("Invalid email or password.")
+            raise ValueError("Invalid username or password.")
 
-        # Require activation first
+        # Ensure account is activated
         if not user["is_active"]:
-            session["pending_activation_id"] = user["id"]
             flash("Please activate your account before continuing.", "info")
             return redirect(url_for("activate_get"))
 
-        session["user_id"] = user["id"]
-        session["user_role"] = user["role"]
+        full_user = get_user_by_id(user["id"])
+        session["user_id"] = full_user["id"]
+        session["role_name"] = full_user["role_name"]
+        session["role_id"] = full_user["role_id"]
 
+        # Log the login action
         log_action(
             "LOGIN",
             session.get("user_id"),
             {
-                "login_user_id": user["id"],
-                "login_user_email": user["email"],
-                "login_user_role": user["role"],
+                "username": full_user["username"],
+                "role": full_user["role_name"],
             },
         )
 
         flash("Logged in successfully!", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard"))
 
     except ValueError as e:
         flash(str(e), "danger")
@@ -149,117 +176,118 @@ def login_post():
 # --------------------------------------
 # GET: Show registration form
 # --------------------------------------
-@app.route("/register", methods=["GET"])
+@app.route("/clinicians/create", methods=["GET"])
 @admin_required
-def register_get():
-    return render_template("register.html")
+def create_clinician_get():
+    return render_template("admin/create_clinician.html")
 
 
 # --------------------------------------
 # POST: Handle user registration logic
 # --------------------------------------
-@app.route("/register", methods=["POST"])
+@app.route("/clinicians/create", methods=["POST"])
 @admin_required
-def register_post():
-    temp_password = str(secrets.token_hex(4))
-
-    first_name = request.form.get("first_name", "").strip()
-    last_name = request.form.get("last_name", "").strip()
-    email = request.form.get("email", "").strip().lower()
-    role = request.form.get("role", "").strip().lower()
+def create_clinician_post():
+    username = (request.form.get("username") or "").strip()
+    full_name = (request.form.get("full_name") or "").strip()
+    specialization = (request.form.get("specialization") or "").strip()
+    license_number = (request.form.get("license_number") or "").strip()
 
     try:
-        validate_registration_form(first_name, last_name, email, role)
-        new_user_id = create_user(first_name, last_name, email, role, temp_password)
+        validate_registration_form(username, "clinician")
+        user_id = create_user(username, "clinician")
 
+        create_clinician_profile(
+            user_id=user_id,
+            full_name=full_name,
+            specialization=specialization,
+            license_number=license_number,
+        )
+
+        raw_token = generate_activation_token(user_id)
+        activation_link = url_for(
+            "activate_account_get", token=raw_token, _external=True
+        )
+
+        # Log event
         log_action(
-            "REGISTER",
+            "INVITE_CLINICIAN",
             session.get("user_id"),
             {
-                "created_user_id": new_user_id,
-                "created_user_email": email,
-                "created_user_role": role,
+                "invited_user_id": user_id,
+                "username": username,
+                "activation_link": activation_link,
             },
         )
 
-        flash(f"Registered successfully! Temp password: {temp_password}", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("user_created", activation_link=activation_link))
 
     except sqlite3.Error:
         flash("Database error occurred.", "danger")
-        return redirect(url_for("register_get"))
+        return redirect(url_for("create_clinician_get"))
 
     except ValueError as e:
         flash(str(e), "danger")
-        return redirect(url_for("register_get"))
+        return redirect(url_for("create_clinician_get"))
+
+
+# --------------------------------------
+# GET: Show success user creation page
+# --------------------------------------
+@app.route("/admin/user_created", methods=["GET"])
+def user_created():
+    activation_link = request.args.get("activation_link")
+
+    return render_template("admin/user_created.html", activation_link=activation_link)
 
 
 # -----------------------------
 # GET: Show activation form
 # -----------------------------
-@app.route("/activate", methods=["GET"])
-def activate_get():
-    user_id = session.get("pending_activation_id")
+@app.route("/activate/<token>", methods=["GET"])
+def activate_account_get(token):
+    user_id = get_valid_activation_user(token)
 
     if not user_id:
-        flash("No pending activation found. Please log in.", "danger")
-        return redirect(url_for("login_get"))
+        return render_template("activation_invalid.html")
 
-    user = get_user_by_id(user_id)
-    if not user:
-        flash("User not found.", "danger")
-        return redirect(url_for("login_get"))
-
-    return render_template("activate.html")
+    return render_template("activate.html", token=token)
 
 
 # -----------------------------
 # POST: Handle user activation logic
 # -----------------------------
-@app.route("/activate", methods=["POST"])
-def activate_post():
+@app.route("/activate/<token>", methods=["POST"])
+def activate_account_post(token):
+    user_id = get_valid_activation_user(token)
+
+    if not user_id:
+        flash("Invalid or expired activation link.", "danger")
+        return redirect(url_for("login_get"))
+
+    new_password = request.form.get("new_password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
     try:
-        user_id = session.get("pending_activation_id")
-        if not user_id:
-            raise ValueError("No pending activation found. Please log in.")
-
-        user = get_user_by_id(user_id)
-        if not user:
-            raise ValueError("User not found.")
-
-        new_password = request.form.get("new_password", "").strip()
-        confirm_password = request.form.get("confirm_password", "").strip()
-
         validate_activation_passwords(new_password, confirm_password)
-
         update_user_activation(user_id, new_password)
 
-        log_action(
-            "ACTIVATE",
-            user_id,
-            {
-                "user_email": user["email"],
-                "user_role": user["role"],
-            },
-        )
+        # Mark token as used
+        used_at_time = mark_token_used(token)
 
-        # Clean up activation session
-        session.pop("pending_activation_id", None)
+        # Log action
+        log_action("ACCOUNT_ACTIVATED", user_id, {"used_at": used_at_time})
 
-        flash("Account activated! You can now log in.", "success")
+        flash("Your account has been activated. You can now log in.", "success")
         return redirect(url_for("login_get"))
 
     except ValueError as e:
         flash(str(e), "danger")
-        return redirect(url_for("activate_get"))
+        return redirect(url_for("activate_account_get", token=token))
 
-    except sqlite3.Error:
-        flash("Database error occurred during activation.", "danger")
-        return redirect(url_for("activate_get"))
-
-    except Exception:
+    except (Exception, sqlite3.Error):
         flash("An unexpected error occurred.", "danger")
-        return redirect(url_for("activate_get"))
+        return redirect(url_for("activate_account_get", token=token))
 
 
 # --------------------------------------
