@@ -1,21 +1,29 @@
 from utils.config import Config
-from utils.auth import get_user_by_email, authenticate_user
+from utils.auth import get_user_by_username
+from utils.config import Config
 
 
-def validate_registration_form(first_name, last_name, email, role):
-    if not (first_name and last_name and email and role):
+def validate_registration_form(username, role_name):
+    if not (username and role_name):
         raise ValueError("All fields are required.")
 
-    if not Config.EMAIL_PATTERN.fullmatch(email):
-        raise ValueError("Email format is invalid.")
+    # Username format validation
+    if not Config.USERNAME_PATTERN.fullmatch(username):
+        raise ValueError(
+            "Username is invalid. Use 3–20 characters: letters, numbers, underscores."
+        )
 
-    if get_user_by_email(email):
-        raise ValueError("A user with this email already exists.")
+    # Check that role exists
+    if role_name not in ("admin", "clinician"):
+        raise ValueError("Invalid role selected.")
+
+    if get_user_by_username(username):
+        raise ValueError("A user with this username already exists.")
 
 
-def validate_login_form(email, password):
-    if not (email and password):
-        raise ValueError("Please enter both email and password.")
+def validate_login_form(username, password):
+    if not (username and password):
+        raise ValueError("Please enter both username and password.")
 
 
 def validate_activation_passwords(new_password, confirm_password):
@@ -25,5 +33,8 @@ def validate_activation_passwords(new_password, confirm_password):
     if new_password != confirm_password:
         raise ValueError("Passwords do not match.")
 
-    if len(new_password) < 8:
-        raise ValueError("Password must be at least 8 characters long.")
+    if not Config.PASSWORD_PATTERN.fullmatch(new_password):
+        raise ValueError(
+            "Password must be 8–64 characters long and include at least one uppercase letter, "
+            "one lowercase letter, one digit, and one special character."
+        )

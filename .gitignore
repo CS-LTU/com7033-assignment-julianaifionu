@@ -13,6 +13,7 @@ env/
 .DS_Store
 .idea
 Thumbs.db
+.vscode/
 
 # database
 stroke_tracker.db

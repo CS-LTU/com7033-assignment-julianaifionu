@@ -1,5 +1,6 @@
 import bcrypt, sqlite3
 from utils.db_sqlite import get_db
+from utils.time_formatter import utc_now
 
 """Authentication utility functions."""
 
@@ -19,7 +20,7 @@ def hash_password(plain_password: str) -> str:
     return hashed_password.decode("utf-8")
 
 
-def check_password(plain_password: str, password_hash: str) -> bool:
+def verify_password(plain_password: str, password_hash: str) -> bool:
     """
     Compare a stored password hash with a user-provided password.
 
@@ -35,62 +36,73 @@ def check_password(plain_password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
-def authenticate_user(email: str, plain_password: str) -> dict | None:
+def authenticate_user(username: str, plain_password: str) -> dict | None:
     """
-    Authenticate a user by email and password.
+    Authenticate a user by username and password.
 
     Args:
-         email (str): The user's email address (case-insensitive).
+         username (str): The user's username.
          plain_password (str): The user's plaintext password to verify.
      Returns:
          dict | None: The user dict from the database if credentials are correct, otherwise None.
     """
 
-    if not (email and plain_password):
-        return None
+    conn = get_db()
+    cur = conn.cursor()
 
-    user = get_user_by_email(email)
+    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+    user = cur.fetchone()
+    conn.close()
 
     if not user:
         return None
 
-    if not (check_password(plain_password, user["password_hash"])):
+    if not user["is_active"]:
+        return None
+    
+    if not user["password_hash"]:
+        return None
+
+    if not (verify_password(plain_password, user["password_hash"])):
         return None
     return user
 
 
-def get_user_by_email(email: str) -> dict | None:
+def get_user_by_username(username: str) -> dict | None:
     """
-    Find a user by their email address from the users table.
+    Find a user by their username.
 
     Args:
-        email (str): The email address to search for (case-insensitive).
+        username (str): The username to search for.
     Returns:
         dict | None: The matching user dictionary if found, otherwise None.
     """
 
-    if not email:
+    if not username:
         return None
 
-    email = email.strip().lower()
+    username = username.strip()
+    conn = get_db()
+    cur = conn.cursor()
 
-    try:
-        conn = get_db()
-        cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT users.*, roles.name AS role_name
+        FROM users
+        JOIN roles ON users.role_id = roles.id
+        WHERE users.username = ?
+        """,
+        (username,),
+    )
 
-        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-        user = cur.fetchone()
-        conn.close()
-
-        return user
-
-    except (Exception, sqlite3.Error):
-        return None
+    row = cur.fetchone()
+    conn.close()
+    return row
 
 
 def get_user_by_id(user_id: int) -> dict | None:
     """
-    Find a user by id from the users table.
+    Find a user by id.
 
     Args:
         user_id (int): The user id to search for.
@@ -101,15 +113,37 @@ def get_user_by_id(user_id: int) -> dict | None:
     if not user_id:
         return None
 
-    try:
-        conn = get_db()
-        cur = conn.cursor()
+    conn = get_db()
+    cur = conn.cursor()
 
-        cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-        user = cur.fetchone()
-        conn.close()
+    cur.execute(
+        """
+        SELECT users.*, roles.name AS role_name
+        FROM users
+        JOIN roles ON users.role_id = roles.id
+        WHERE users.id = ?
+        """,
+        (user_id,),
+    )
 
-        return user
+    row = cur.fetchone()
+    conn.close()
+    return row
 
-    except (Exception, sqlite3.Error):
-        return None
+
+def create_clinician_profile(user_id, full_name, specialization, license_number):
+    conn = get_db()
+    cur = conn.cursor()
+
+    time = utc_now()
+
+    cur.execute(
+        """
+        INSERT INTO clinicians (user_id, full_name, specialization, license_number, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (user_id, full_name, specialization, license_number, time),
+    )
+
+    conn.commit()
+    conn.close()

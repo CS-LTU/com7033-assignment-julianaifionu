@@ -6,11 +6,21 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get("STROKE_APP_SECRET_KEY")
-    ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
+    ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
     BASE_DIR = os.getcwd()
     DB_PATH = os.path.join(BASE_DIR, "stroke_tracker.db")
-    EMAIL_PATTERN = re.compile(r"^[\w\.-]+@[\w\.-]+\.[A-Za-z]{2,}$")
+    USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
+    PASSWORD_PATTERN = re.compile(
+        r"""
+    ^(?=.*[a-z])           # at least one lowercase
+    (?=.*[A-Z])            # at least one uppercase
+    (?=.*\d)               # at least one digit
+    (?=.*[@$!%*?&.,;:_\-]) # at least one special character
+    [A-Za-z\d@$!%*?&.,;:_\-]{8,64}$  # allowed chars & length
+    """,
+        re.VERBOSE,
+    )
 
     # Mongo
     MONGO_URI = os.environ.get("MONGO_URI")

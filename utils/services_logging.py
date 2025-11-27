@@ -7,15 +7,12 @@ _mdb = _client[Config.MONGO_DB]
 logs_collection = _mdb[Config.MONGO_LOGS_COL]
 
 
-def log_action(action, actor_uid, details=None):
+def log_action(action, user_id, details=None):
     doc = {
         "action": action,
-        "actor_user_id": actor_uid,
+        "user_id": user_id,
         "details": details or {},
         "ts": datetime.now(timezone.utc),
     }
 
-    try:
-        logs_collection.insert_one(doc)
-    except Exception as e:
-        print("Log insert failed:", e)
+    logs_collection.insert_one(doc)

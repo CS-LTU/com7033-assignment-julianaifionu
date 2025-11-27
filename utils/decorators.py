@@ -17,15 +17,15 @@ def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         user_id = session.get("user_id")
-        user_role = session.get("user_role")
+        role_name = session.get("role_name")
 
         if not user_id:
             flash("Please log in first.", "warning")
             return redirect(url_for("login_get"))
 
-        if user_role and user_role != "admin":
+        if role_name != "admin":
             flash("Admin access required.", "danger")
-            return redirect(url_for("home"))
+            return redirect(url_for("dashboard"))
 
         return f(*args, **kwargs)
 
