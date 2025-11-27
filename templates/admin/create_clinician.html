@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Create New Clinician{% endblock %} {%
+block content %}
+<div class="row justify-content-center">
+	<div class="col-md-6">
+		<div class="card shadow-sm">
+			<div class="card-body">
+				<h4 class="text-center mb-3">Create Clinician</h4>
+
+				<form method="POST" action="{{ url_for('create_clinician_post') }}">
+					<div class="row">
+						<div class="col-md-6 mb-3">
+							<label for="username" class="form-label">Username</label>
+							<input
+								id="username"
+								type="text"
+								name="username"
+								class="form-control"
+							/>
+						</div>
+						<div class="col-md-6 mb-3">
+							<label for="full_name" class="form-label">Full Name</label>
+							<input
+								id="full_name"
+								type="text"
+								name="full_name"
+								class="form-control"
+							/>
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label for="specialization" class="form-label"
+							>Specialization</label
+						>
+						<input
+							id="specialization"
+							name="specialization"
+							class="form-control"
+						/>
+					</div>
+
+					<div class="mb-3">
+						<label for="license_number" class="form-label"
+							>License_number</label
+						>
+						<input
+							id="license_number"
+							name="license_number"
+							class="form-control"
+						/>
+					</div>
+					<button type="submit" class="btn btn-primary w-100">
+						Create Clinician
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

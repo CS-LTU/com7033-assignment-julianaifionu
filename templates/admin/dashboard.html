@@ -1,8 +1,9 @@
-{% extends "base.html" %} {% block title %} Secure Stroke Prediction App {%
+{% extends "base.html" %} {% block title %}Secure Stroke Prediction App{%
 endblock %} {% block content %}
 <div class="container mt-4">
 	<h3 class="mb-3">Patient Lists</h3>
 
+	{% if patients and len(patients) > 0 %}
 	<div class="table-responsive">
 		<table class="table table-striped table-bordered table-hover align-middle">
 			<thead class="table-dark">
@@ -12,6 +13,7 @@ endblock %} {% block content %}
 					{% endfor %}
 				</tr>
 			</thead>
+
 			<tbody>
 				{% for patient in patients %}
 				<tr>
@@ -23,5 +25,9 @@ endblock %} {% block content %}
 			</tbody>
 		</table>
 	</div>
+
+	{% else %}
+	<div class="alert alert-info">No patients found.</div>
+	{% endif %}
 </div>
 {% endblock %}

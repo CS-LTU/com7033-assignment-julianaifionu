@@ -1,8 +1,16 @@
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
 	<div class="container-fluid">
-		<a class="navbar-brand fw-bold text-white" href="{{ url_for('home') }}"
-			>Home</a
+		{% if role_name=="admin" %}
+		<a
+			class="navbar-brand fw-bold text-white"
+			href="{{ url_for('admin_dashboard') }}"
+			>Dashboard</a
 		>
+		{% else %}
+		<a class="navbar-brand fw-bold text-white" href="{{ url_for('dashboard') }}"
+			>Dashboard</a
+		>
+		{% endif %}
 		<button
 			class="navbar-toggler"
 			type="button"
@@ -14,28 +22,30 @@
 		>
 			<span class="navbar-toggler-icon"></span>
 		</button>
-
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-				{% if first_name and role %}
+				{% if username and role_name %}
 				<li class="nav-item">
-					<span class="nav-link text-white"> {{ first_name }} </span>
+					<span class="nav-link text-white"> {{ username }} </span>
 				</li>
 				<li class="nav-item">
-					<span class="nav-link text-white"> {{ role }} </span>
+					<span class="nav-link text-white"> {{ role_name }} </span>
 				</li>
 
-				{% if role=="admin" %}
+				{% if role_name=="admin" %}
 				<li class="nav-item">
-					<a class="nav-link text-white" href="{{ url_for('register_get') }}"
-						>Create User</a
+					<a
+						class="nav-link text-white"
+						href="{{ url_for('create_clinician_get') }}"
+						>Create Clinician</a
 					>
 				</li>
 				{% endif %}
-
 				<li class="nav-item">
-					<form action="{{ url_for('logout') }}" method="POST">
-						<button type="submit" class="btn btn-danger">Logout</button>
+					<form action="{{ url_for('logout') }}" method="POST" class="d-inline">
+						<button type="submit" class="btn btn-sm btn-outline-light ms-2">
+							Logout
+						</button>
 					</form>
 				</li>
 

@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block title %}Activation Link Invalid{% endblock %}
+{% block content %}
+<div
+	class="container d-flex align-items-center justify-content-center"
+	style="min-height: 70vh"
+>
+	<div class="card shadow-lg border-0" style="max-width: 500px; width: 100%">
+		<div class="card-body text-center p-4">
+			<div class="mb-3">
+				<div
+					class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto"
+					style="width: 70px; height: 70px"
+				>
+					<i class="bi bi-x-circle text-danger fs-1"></i>
+				</div>
+			</div>
+			<h3 class="fw-bold text-dark">Activation Link Invalid</h3>
+			<p class="text-muted mt-2">
+				This activation link is invalid or has expired. It may have already been
+				used, or it might be incorrect.
+			</p>
+
+			<p class="small text-muted">
+				If you're a clinician, please contact your system administrator.
+				<br />
+			</p>
+			<div class="d-grid gap-2 mt-4">
+				<a href="{{ url_for('login_get') }}" class="btn btn-dark">
+					Back to Login
+				</a>
+
+				<a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+					Go to Dashboard
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
