@@ -110,17 +110,17 @@ def get_patient_by_id(patient_id):
 
     cur.execute(
         """
-        SELECT id, clinician_id, first_name, last_name, date_of_birth, gender, created_at
+        SELECT id, clinician_id, first_name, last_name, date_of_birth, gender, created_at, is_archived, archived_at
         FROM patients 
         WHERE id = ?
     		""",
         (patient_id,),
     )
 
-    patient = cur.fetchone()
+    row = cur.fetchone()
 
     conn.close()
-    return patient
+    return row
 
 
 def update_patient(patient_id, data):
@@ -142,3 +142,35 @@ def update_patient(patient_id, data):
 
     conn.commit()
     conn.close()
+
+
+def archive_patient_service(patient_id):
+    patient = get_patient_by_id(patient_id)
+
+    if not patient:
+        raise ValueError("Patient not found.")
+
+    if patient["is_archived"]:
+        raise ValueError("Patient is already archived.")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+				UPDATE patients
+				SET is_archived = 1,
+						archived_at = ?
+				WHERE id = ?;
+				""",
+        (utc_now(), patient_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def is_patient_archived(patient_id):
+    patient = get_patient_by_id(patient_id)
+    if not patient:
+        raise ValueError("Patient not found.")
+    return patient["is_archived"]

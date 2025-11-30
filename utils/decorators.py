@@ -67,7 +67,7 @@ def validate_patient_access(patient_id):
     return patient, clinician_user_id
 
 
-def patient_clinician_required(f):
+def patient_clinician_or_admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
 
@@ -92,7 +92,7 @@ def patient_clinician_required(f):
     return wrapper
 
 
-def clinician_patient_only(f):
+def patient_clinician_only(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
 

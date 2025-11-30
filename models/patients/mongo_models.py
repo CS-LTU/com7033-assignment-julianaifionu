@@ -76,3 +76,6 @@ def update_lifestyle(patient_id, data):
         },
         upsert=True,
     )
+
+
+

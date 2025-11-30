@@ -74,6 +74,8 @@ def init_sqlite_db():
             last_name TEXT NOT NULL,
             date_of_birth TEXT NOT NULL,
             gender TEXT NOT NULL,
+            is_archived BOOLEAN NOT NULL DEFAULT 0,
+            archived_at TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT,
             FOREIGN KEY (clinician_id) REFERENCES clinicians(id)
