@@ -1,5 +1,5 @@
 from utils.config import Config
-from utils.auth import get_user_by_username
+from models.auth.auth import get_user_by_username
 from utils.config import Config
 
 

@@ -1,22 +1,35 @@
 a {
-  text-decoration: none;
+	text-decoration: none;
 }
 
 .flash {
-  list-style: none;
-  padding: 0;
+	list-style: none;
+	padding: 0;
 }
 
 .flash li {
-  padding: 0.5rem 0.75rem;
-  margin: 0.25rem 0;
-  border-radius: 6px;
+	padding: 0.5rem 0.75rem;
+	margin: 0.25rem 0;
+	border-radius: 6px;
 }
 
 .flash-error {
-  background: #ffe3e3;
+	background: #ffe3e3;
 }
 
 .flash-success {
-  background: #e6ffed;
+	background: #e6ffed;
+}
+
+.bg-pink {
+	background-color: #e91e63;
+}
+
+.table-hover tbody tr:hover {
+	background-color: #f8f9fa;
+	cursor: pointer;
+}
+
+.card {
+	border-radius: 8px;
 }

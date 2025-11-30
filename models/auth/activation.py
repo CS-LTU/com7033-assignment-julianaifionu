@@ -2,7 +2,7 @@ import secrets
 import hashlib
 from datetime import datetime, timedelta, timezone
 
-from utils.db_sqlite import get_db
+from models.db_sqlite import get_db
 from utils.time_formatter import utc_now
 
 

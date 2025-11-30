@@ -1,33 +1,41 @@
 import sqlite3
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
-from utils.auth import (
+from models.auth.auth import (
     authenticate_user,
     get_user_by_id,
-    create_clinician_profile,
 )
-from utils.config import Config
-from utils.initialize import initialize
-from utils.decorators import admin_required, login_required
-from utils.services_logging import log_action
-from utils.queries import (
-    create_user,
-    update_user_activation,
+from models.clinicians.clinician_model import (
+    create_clinician_profile,
     get_all_clinicians,
+)
+
+from models.users.user_model import create_user, update_user_activation
+from utils.config import Config
+from models.initialize import initialize
+from utils.decorators import (
+    admin_required,
+    login_required,
+    clinician_required,
+    patient_clinician_required,
+)
+from models.patients.sqlite_models import (
     get_all_patients,
     get_all_patients_for_clinician,
 )
+from utils.services_logging import log_action
 from utils.validations import (
     validate_registration_form,
     validate_login_form,
     validate_activation_passwords,
 )
-from utils.activation import (
+from models.auth.activation import (
     generate_activation_token,
     get_valid_activation_user,
     mark_token_used,
 )
 from utils.current_user import get_current_user
+from models.patients.sqlite_models import create_patient
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
@@ -59,7 +67,7 @@ def inject_user():
 @login_required
 def index():
     current_user = get_current_user()
-    
+
     if current_user and current_user["role_name"] == "admin":
         return redirect(url_for("admin_dashboard"))
 
@@ -85,8 +93,8 @@ def admin_dashboard():
             clinicians=clinicians,
             patients=patients,
         )
-    except sqlite3.Error:
-        flash("An error occurred while loading dashboard data", "danger")
+    except sqlite3.Error as e:
+        flash(f"An error occurred while loading dashboard data {e}", "danger")
         return render_template(
             "admin/dashboard.html", user=user, clinicians=[], patients=[]
         )
@@ -109,11 +117,13 @@ def dashboard():
 
         patients = get_all_patients_for_clinician(user["id"])
 
-        return render_template("dashboard.html", user=user, patients=patients)
+        return render_template(
+            "clinicians/dashboard.html", user=user, patients=patients
+        )
 
-    except sqlite3.Error:
+    except (sqlite3.Error, Exception):
         flash(f"An error occurred while loading dashboard data", "danger")
-        return render_template("dashboard.html", user=user, patients=[])
+        return render_template("clinicians/dashboard.html", user=user, patients=[])
 
 
 # --------------------------------------
@@ -249,9 +259,9 @@ def activate_account_get(token):
     user_id = get_valid_activation_user(token)
 
     if not user_id:
-        return render_template("activation_invalid.html")
+        return render_template("clinicians/activation_invalid.html")
 
-    return render_template("activate.html", token=token)
+    return render_template("clinicians/activate.html", token=token)
 
 
 # -----------------------------
@@ -288,6 +298,59 @@ def activate_account_post(token):
     except (Exception, sqlite3.Error):
         flash("An unexpected error occurred.", "danger")
         return redirect(url_for("activate_account_get", token=token))
+
+
+# --------------------------------------
+# GET: Show create patient page
+# --------------------------------------
+@app.route("/patients/new", methods=["GET"])
+@login_required
+@clinician_required
+def create_patient_get():
+    return render_template("patients/new_patient.html")
+
+
+# --------------------------------------
+# POST: Handle create patient logic
+# --------------------------------------
+@app.route("/new", methods=["POST"])
+@login_required
+@clinician_required
+def create_patient_post():
+    try:
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
+        date_of_birth = request.form.get("date_of_birth", "").strip()
+        gender = request.form.get("gender", "").strip()
+
+        clinician_id = session.get("user_id")
+
+        if not all([first_name, last_name, date_of_birth, gender]):
+            flash("All fields are required.", "danger")
+            return redirect(url_for("create_patient_get"))
+
+        patient_id = create_patient(
+            clinician_id, first_name, last_name, date_of_birth, gender
+        )
+
+        log_action("NEW PATIENT CREATED", clinician_id, {"patient_id": patient_id})
+
+        flash("Patient created successfully.", "success")
+        return redirect(url_for("view_patient", patient_id=patient_id))
+
+    except Exception as e:
+        flash(f"Error creating patient: {e}", "danger")
+        return redirect(url_for("create_patient_get"))
+
+
+# --------------------------------------
+# GET: View single patient detail page
+# --------------------------------------
+@app.route("/patients/<int:patient_id>", methods=["GET"])
+@login_required
+@patient_clinician_required
+def view_patient(patient_id):
+    return render_template("patients/view_patient.html", patient_id=patient_id)
 
 
 # --------------------------------------

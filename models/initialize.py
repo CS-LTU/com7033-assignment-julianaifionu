@@ -1,6 +1,6 @@
 import sqlite3
-from utils.db_sqlite import init_sqlite_db, get_db
-from utils.auth import hash_password
+from models.db_sqlite import init_sqlite_db, get_db
+from models.auth.auth import hash_password
 from utils.config import Config
 from utils.services_logging import log_action
 from utils.time_formatter import utc_now

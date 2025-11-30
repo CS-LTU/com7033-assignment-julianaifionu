@@ -1,5 +1,5 @@
-import bcrypt, sqlite3
-from utils.db_sqlite import get_db
+import bcrypt
+from models.db_sqlite import get_db
 from utils.time_formatter import utc_now
 
 """Authentication utility functions."""
@@ -131,19 +131,4 @@ def get_user_by_id(user_id: int) -> dict | None:
     return row
 
 
-def create_clinician_profile(user_id, full_name, specialization, license_number):
-    conn = get_db()
-    cur = conn.cursor()
 
-    time = utc_now()
-
-    cur.execute(
-        """
-        INSERT INTO clinicians (user_id, full_name, specialization, license_number, created_at)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        (user_id, full_name, specialization, license_number, time),
-    )
-
-    conn.commit()
-    conn.close()

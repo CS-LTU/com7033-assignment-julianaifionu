@@ -31,8 +31,15 @@
 				<li class="nav-item">
 					<span class="nav-link text-white"> {{ role_name }} </span>
 				</li>
-
-				{% if role_name=="admin" %}
+				{% if role_name=="clinician" %}
+				<li class="nav-item">
+					<a
+						class="nav-link text-white"
+						href="{{ url_for('create_patient_get') }}"
+						>New Patient</a
+					>
+				</li>
+				{% endif%} {% if role_name=="admin" %}
 				<li class="nav-item">
 					<a
 						class="nav-link text-white"
