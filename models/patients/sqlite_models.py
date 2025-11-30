@@ -10,14 +10,14 @@ def create_patient(clinician_id, first_name, last_name, date_of_birth, gender):
     cur.execute(
         """
         INSERT INTO patients (clinician_id, first_name, last_name, date_of_birth, gender, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
     """,
         (clinician_id, first_name, last_name, date_of_birth, gender, timestamp),
     )
 
-    cur.commit()
     patient_id = cur.lastrowid
-    cur.close()
+    conn.commit()
+    conn.close()
 
     return patient_id
 
@@ -102,5 +102,5 @@ def get_patient_by_id(patient_id):
     cur.execute("SELECT id, clinician_id FROM patients WHERE id = ?", (patient_id,))
     patient = cur.fetchone()
     
-    cur.close()
+    conn.close()
     return patient

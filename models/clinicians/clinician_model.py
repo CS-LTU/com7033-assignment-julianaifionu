@@ -60,9 +60,23 @@ def get_all_clinicians():
 def get_clinician_user_id(clinician_id):
     conn = get_db()
     cur = conn.cursor()
-    
+
     cur.execute("SELECT user_id FROM clinicians WHERE id = ?", (clinician_id,))
-    
-    owner = cur.fetchone()
+
+    row = cur.fetchone()
     conn.close()
-    return owner
+    return row["user_id"] if row else None
+
+
+def get_user_clinician_id(user_id):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT id FROM clinicians WHERE user_id = ?",
+        (user_id,),
+    )
+
+    row = cur.fetchone()
+    conn.close()
+    return row["id"] if row else None

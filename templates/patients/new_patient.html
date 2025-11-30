@@ -1,38 +1,191 @@
-{% extends "base.html" %} {% block title %}Create New Patient{% endblock %} {%
+{% extends "base.html" %} {% block title %}New Patient Flow{% endblock %} {%
 block content %}
 <div class="container mt-4">
-	<h3 class="mb-3">Register New Patient</h3>
+	<!-- STEP ICON NAVIGATION -->
+	{% include "partials/step_icon_navigation.html" %}
 
-	<form
-		action="{{ url_for('create_patient_post') }}"
-		method="POST"
-		class="card p-4 shadow-sm"
-	>
-		<div class="mb-3">
-			<label class="form-label">First Name</label>
-			<input type="text" name="first_name" class="form-control" />
+	<div class="card shadow-sm border-0 p-4 animated-card fade-in" id="formCard">
+		<!-- STEP 1 — DEMOGRAPHIC -->
+		<div id="step1" class="step-section">
+			<h4 class="fw-bold mb-3 text-secondary">Demographic Information</h4>
+
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label"
+						>First Name <span class="text-danger">*</span></label
+					>
+					<input type="text" id="first_name" class="form-control" required />
+				</div>
+
+				<div class="col-md-6 mb-3">
+					<label class="form-label"
+						>Last Name <span class="text-danger">*</span></label
+					>
+					<input type="text" id="last_name" class="form-control" required />
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label"
+						>Date of Birth <span class="text-danger">*</span></label
+					>
+					<input type="date" id="date_of_birth" class="form-control" required />
+				</div>
+
+				<div class="col-md-6 mb-3">
+					<label class="form-label"
+						>Gender <span class="text-danger">*</span></label
+					>
+					<select id="gender" class="form-select cursor-pointer" required>
+						<option value="">-- choose --</option>
+						<option value="female">Female</option>
+						<option value="male">Male</option>
+					</select>
+				</div>
+			</div>
+
+			<button class="btn btn-primary w-100 mt-3" onclick="nextStep()">
+				Next
+			</button>
 		</div>
 
-		<div class="mb-3">
-			<label class="form-label">Last Name</label>
-			<input type="text" name="last_name" class="form-control" />
+		<!-- STEP 2 — LIFESTYLE -->
+		<div id="step2" class="step-section d-none">
+			<h4 class="fw-bold mb-3">Lifestyle</h4>
+
+			<div class="row">
+				<div class="col-md-4 mb-3">
+					<label class="form-label">Ever Married</label>
+					<select class="form-select" id="ever_married">
+						<option value="">-- choose --</option>
+						<option value="yes">Yes</option>
+						<option value="no">No</option>
+					</select>
+				</div>
+
+				<div class="col-md-4 mb-3">
+					<label class="form-label">Work Type</label>
+					<select class="form-select" id="work_type">
+						<option value="">-- choose --</option>
+						<option value="private">Private</option>
+						<option value="self-employed">Self-employed</option>
+						<option value="govt_job">Govt Job</option>
+						<option value="children">Children</option>
+						<option value="never_worked">Never Worked</option>
+					</select>
+				</div>
+
+				<div class="col-md-4 mb-3">
+					<label class="form-label">Resident Type</label>
+					<select class="form-select" id="resident_type">
+						<option value="">-- choose --</option>
+						<option value="urban">Urban</option>
+						<option value="rural">Rural</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Smoking Status</label>
+				<select class="form-select" id="smoking_status">
+					<option value="">-- choose --</option>
+					<option value="never smoked">Never smoked</option>
+					<option value="smokes">Smokes</option>
+					<option value="formerly smoked">Formerly smoked</option>
+					<option value="unknown">Unknown</option>
+				</select>
+			</div>
+
+			<div class="d-flex justify-content-between mt-3">
+				<button class="btn btn-secondary" onclick="previousStep()">Back</button>
+				<button class="btn btn-primary" onclick="nextStep()">Next</button>
+			</div>
 		</div>
 
-		<div class="mb-3">
-			<label class="form-label">Date of Birth</label>
-			<input type="date" name="date_of_birth" class="form-control"/>
+		<!-- STEP 3 — MEDICAL History -->
+		<div id="step3" class="step-section d-none">
+			<h4 class="fw-bold mb-3">Medical History</h4>
+
+			<div class="row">
+				<div class="col-md-3 mb-3">
+					<label class="form-label">Hypertension</label>
+					<select class="form-select" id="hypertension">
+						<option value="">-- choose --</option>
+						<option value="1">Yes</option>
+						<option value="0">No</option>
+					</select>
+				</div>
+
+				<div class="col-md-3 mb-3">
+					<label class="form-label">Heart Disease</label>
+					<select class="form-select" id="heart_disease">
+						<option value="">-- choose --</option>
+						<option value="1">Yes</option>
+						<option value="0">No</option>
+					</select>
+				</div>
+
+				<div class="col-md-3 mb-3">
+					<label class="form-label">Stroke</label>
+					<select class="form-select" id="stroke">
+						<option value="">-- choose --</option>
+						<option value="1">Yes</option>
+						<option value="0">No</option>
+					</select>
+				</div>
+
+				<div class="col-md-3 mb-3">
+					<label class="form-label">BMI</label>
+					<input
+						type="number"
+						step="0.1"
+						class="form-control"
+						id="bmi"
+						placeholder="e.g., 28.5"
+					/>
+				</div>
+			</div>
+
+			<div class="mb-4">
+				<label class="form-label">Average Glucose Level</label>
+				<input
+					type="number"
+					step="0.1"
+					class="form-control"
+					id="avg_glucose_level"
+					placeholder="e.g., 95.4"
+				/>
+			</div>
+
+			<div class="d-flex justify-content-between mt-3">
+				<button class="btn btn-secondary" onclick="previousStep()">Back</button>
+				<button class="btn btn-primary" onclick="nextStep()">Review</button>
+			</div>
 		</div>
 
-		<div class="mb-3">
-			<label class="form-label">Gender</label>
-			<select name="gender" class="form-select">
-				<option value="">-- choose --</option>
-				<option value="female">Female</option>
-				<option value="male">Male</option>
-			</select>
-		</div>
+		<!-- STEP 4 — REVIEW & SUBMIT -->
+		<div id="step4" class="step-section d-none">
+			<h4 class="fw-bold mb-3">Review Patient Information</h4>
+			<p class="text-muted">Confirm the details before saving.</p>
 
-		<button type="submit" class="btn btn-primary w-100">Create Patient</button>
-	</form>
+			<div class="review-box p-3 border rounded bg-light mb-3">
+				<h6 class="fw-bold">Demographic</h6>
+				<p id="review_demo"></p>
+
+				<h6 class="fw-bold mt-3">Lifestyle</h6>
+				<p id="review_lifestyle"></p>
+
+				<h6 class="fw-bold mt-3">Medical History</h6>
+				<p id="review_medical"></p>
+			</div>
+
+			<div class="d-flex justify-content-between mt-3">
+				<button class="btn btn-secondary" onclick="previousStep()">Back</button>
+				<button class="btn btn-success" onclick="submitForm()">Submit</button>
+			</div>
+		</div>
+	</div>
 </div>
+
 {% endblock %}

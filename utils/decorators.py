@@ -69,15 +69,13 @@ def patient_clinician_required(f):
             flash("Patient not found.", "danger")
             return redirect(url_for("dashboard"))
 
-        patient_owner_clinician_id = patient["clinician_id"]
-
-        owner_row = get_clinician_user_id(patient_owner_clinician_id)
-        if not owner_row:
+        clinician_id = patient["clinician_id"]
+        clinician_user_id = get_clinician_user_id(clinician_id)
+        
+        if not clinician_user_id:
             flash("Clinician information missing.", "danger")
             return redirect(url_for("dashboard"))
 
-        clinician_user_id = owner_row["user_id"]
-        
         if role_name == "clinician" and user_id == clinician_user_id:
             return f(*args, **kwargs)
 

@@ -26,3 +26,5 @@ class Config:
     MONGO_URI = os.environ.get("MONGO_URI")
     MONGO_DB = "stroke_tracker_db"
     MONGO_LOGS_COL = "logs"
+    MONGO_MEDICAL_HISTORY_COL = "patient_medical_history"
+    MONGO_LIFESTYLE_COL = "patient_lifestyle"

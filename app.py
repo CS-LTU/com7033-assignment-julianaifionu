@@ -8,6 +8,7 @@ from models.auth.auth import (
 from models.clinicians.clinician_model import (
     create_clinician_profile,
     get_all_clinicians,
+    get_user_clinician_id,
 )
 
 from models.users.user_model import create_user, update_user_activation
@@ -36,6 +37,7 @@ from models.auth.activation import (
 )
 from utils.current_user import get_current_user
 from models.patients.sqlite_models import create_patient
+from models.patients.mongo_models import insert_lifestyle, insert_medical_history
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
@@ -313,33 +315,83 @@ def create_patient_get():
 # --------------------------------------
 # POST: Handle create patient logic
 # --------------------------------------
-@app.route("/new", methods=["POST"])
+@app.route("/patients/new", methods=["POST"])
 @login_required
 @clinician_required
 def create_patient_post():
     try:
+        # Demographics
         first_name = request.form.get("first_name", "").strip()
         last_name = request.form.get("last_name", "").strip()
         date_of_birth = request.form.get("date_of_birth", "").strip()
         gender = request.form.get("gender", "").strip()
+        
+        # Lifestyle
+        ever_married = request.form.get("ever_married")
+        work_type = request.form.get("work_type")
+        resident_type = request.form.get("resident_type")
+        smoking_status = request.form.get("smoking_status")
 
-        clinician_id = session.get("user_id")
+        # Medical history
+        hypertension = request.form.get("hypertension")
+        heart_disease = request.form.get("heart_disease")
+        avg_glucose_level = request.form.get("avg_glucose_level")
+        bmi = request.form.get("bmi")
+        stroke = request.form.get("stroke")
 
+        user_id = session.get("user_id")
+        clinician_id = get_user_clinician_id(user_id)
+
+        # Validate mandatory demographic fields
         if not all([first_name, last_name, date_of_birth, gender]):
-            flash("All fields are required.", "danger")
-            return redirect(url_for("create_patient_get"))
+            raise ValueError("All demographic fields are required.")
 
+        # Create patient in SQLite
         patient_id = create_patient(
             clinician_id, first_name, last_name, date_of_birth, gender
         )
 
-        log_action("NEW PATIENT CREATED", clinician_id, {"patient_id": patient_id})
+        # Insert medical history into MongoDB
+        insert_medical_history(
+            patient_id,
+            {
+                "hypertension": hypertension,
+                "heart_disease": heart_disease,
+                "avg_glucose_level": avg_glucose_level,
+                "bmi": bmi,
+                "stroke": stroke,
+            },
+        )
 
-        flash("Patient created successfully.", "success")
+        # Insert lifestyle info into MongoDB
+        insert_lifestyle(
+            patient_id,
+            {
+                "ever_married": ever_married,
+                "work_type": work_type,
+                "resident_type": resident_type,
+                "smoking_status": smoking_status,
+            },
+        )
+
+        log_action(
+            "NEW PATIENT CREATED",
+            user_id,
+            {"patient_id": patient_id, "clinician_id": clinician_id},
+        )
+
+        flash("Patient created successfully!", "success")
         return redirect(url_for("view_patient", patient_id=patient_id))
 
-    except Exception as e:
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("create_patient_get"))
+
+    except sqlite3.Error as e:
         flash(f"Error creating patient: {e}", "danger")
+        return redirect(url_for("create_patient_get"))
+    except Exception as e:
+        flash(f"Unknown error occurred!: {e}", "danger")
         return redirect(url_for("create_patient_get"))
 
 
