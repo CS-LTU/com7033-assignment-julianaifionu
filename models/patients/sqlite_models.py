@@ -2,7 +2,16 @@ from models.db_sqlite import get_db
 from utils.time_formatter import utc_now
 
 
-def create_patient(clinician_id, first_name, last_name, date_of_birth, gender):
+def create_patient(clinician_id, data):
+    first_name = data.get("first_name", "").strip()
+    last_name = data.get("last_name", "").strip()
+    date_of_birth = data.get("date_of_birth", "").strip()
+    gender = data.get("gender", "").strip()
+
+    if not all([first_name, last_name, date_of_birth, gender]):
+        raise ValueError("All demographic fields are required.")
+
+    conn = get_db()
     conn = get_db()
     cur = conn.cursor()
     timestamp = utc_now()
@@ -92,15 +101,44 @@ def get_all_patients_for_clinician(user_id):
 
     rows = cur.fetchall()
     conn.close()
-    return rows
+    return list(rows) if rows else []
 
 
 def get_patient_by_id(patient_id):
     conn = get_db()
     cur = conn.cursor()
-    
-    cur.execute("SELECT id, clinician_id FROM patients WHERE id = ?", (patient_id,))
+
+    cur.execute(
+        """
+        SELECT id, clinician_id, first_name, last_name, date_of_birth, gender, created_at
+        FROM patients 
+        WHERE id = ?
+    		""",
+        (patient_id,),
+    )
+
     patient = cur.fetchone()
-    
+
     conn.close()
     return patient
+
+
+def update_patient(patient_id, data):
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    date_of_birth = data.get("date_of_birth")
+    gender = data.get("gender")
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        """
+						UPDATE patients 
+						SET first_name = ?, last_name = ?, date_of_birth = ?, gender = ?
+						WHERE id = ?
+						""",
+        (first_name, last_name, date_of_birth, gender, patient_id),
+    )
+
+    conn.commit()
+    conn.close()

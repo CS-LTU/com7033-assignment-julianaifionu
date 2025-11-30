@@ -11,6 +11,7 @@ class Config:
     BASE_DIR = os.getcwd()
     DB_PATH = os.path.join(BASE_DIR, "stroke_tracker.db")
     USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
+    LICENSE_NUMBER_PATTERN = re.compile(r"^[A-Z]{2,3}\d{4,6}$")
     PASSWORD_PATTERN = re.compile(
         r"""
     ^(?=.*[a-z])           # at least one lowercase

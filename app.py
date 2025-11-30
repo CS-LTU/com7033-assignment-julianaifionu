@@ -5,6 +5,7 @@ from models.auth.auth import (
     authenticate_user,
     get_user_by_id,
 )
+from utils.time_formatter import utc_now
 from models.clinicians.clinician_model import (
     create_clinician_profile,
     get_all_clinicians,
@@ -19,10 +20,12 @@ from utils.decorators import (
     login_required,
     clinician_required,
     patient_clinician_required,
+    clinician_patient_only,
 )
 from models.patients.sqlite_models import (
     get_all_patients,
     get_all_patients_for_clinician,
+    update_patient,
 )
 from utils.services_logging import log_action
 from utils.validations import (
@@ -36,8 +39,15 @@ from models.auth.activation import (
     mark_token_used,
 )
 from utils.current_user import get_current_user
-from models.patients.sqlite_models import create_patient
-from models.patients.mongo_models import insert_lifestyle, insert_medical_history
+from models.patients.sqlite_models import create_patient, get_patient_by_id
+from models.patients.mongo_models import (
+    insert_lifestyle,
+    insert_medical_history,
+    get_lifestyle,
+    get_medical_history,
+    update_lifestyle,
+    update_medical_history,
+)
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
@@ -84,22 +94,15 @@ def index():
 @admin_required
 def admin_dashboard():
     user = get_current_user()
+    clinicians = get_all_clinicians()
+    patients = get_all_patients()
 
-    try:
-        clinicians = get_all_clinicians()
-        patients = get_all_patients()
-
-        return render_template(
-            "admin/dashboard.html",
-            user=user,
-            clinicians=clinicians,
-            patients=patients,
-        )
-    except sqlite3.Error as e:
-        flash(f"An error occurred while loading dashboard data {e}", "danger")
-        return render_template(
-            "admin/dashboard.html", user=user, clinicians=[], patients=[]
-        )
+    return render_template(
+        "admin/dashboard.html",
+        user=user,
+        clinicians=clinicians,
+        patients=patients,
+    )
 
 
 # --------------------------------------
@@ -108,24 +111,17 @@ def admin_dashboard():
 @app.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():
-    try:
-        user = get_current_user()
+    user = get_current_user()
 
-        if not user:
-            return redirect(url_for("login_get"))
+    if not user:
+        return redirect(url_for("login_get"))
 
-        if user["role_name"] == "admin":
-            return redirect(url_for("admin_dashboard"))
+    if user["role_name"] == "admin":
+        return redirect(url_for("admin_dashboard"))
 
-        patients = get_all_patients_for_clinician(user["id"])
+    patients = get_all_patients_for_clinician(user["id"])
 
-        return render_template(
-            "clinicians/dashboard.html", user=user, patients=patients
-        )
-
-    except (sqlite3.Error, Exception):
-        flash(f"An error occurred while loading dashboard data", "danger")
-        return render_template("clinicians/dashboard.html", user=user, patients=[])
+    return render_template("clinicians/dashboard.html", user=user, patients=patients)
 
 
 # --------------------------------------
@@ -206,7 +202,7 @@ def create_clinician_post():
     license_number = (request.form.get("license_number") or "").strip()
 
     try:
-        validate_registration_form(username, "clinician")
+        validate_registration_form(username, license_number, "clinician")
         user_id = create_user(username, "clinician")
 
         create_clinician_profile(
@@ -320,64 +316,28 @@ def create_patient_get():
 @clinician_required
 def create_patient_post():
     try:
-        # Demographics
-        first_name = request.form.get("first_name", "").strip()
-        last_name = request.form.get("last_name", "").strip()
-        date_of_birth = request.form.get("date_of_birth", "").strip()
-        gender = request.form.get("gender", "").strip()
-        
-        # Lifestyle
-        ever_married = request.form.get("ever_married")
-        work_type = request.form.get("work_type")
-        resident_type = request.form.get("resident_type")
-        smoking_status = request.form.get("smoking_status")
-
-        # Medical history
-        hypertension = request.form.get("hypertension")
-        heart_disease = request.form.get("heart_disease")
-        avg_glucose_level = request.form.get("avg_glucose_level")
-        bmi = request.form.get("bmi")
-        stroke = request.form.get("stroke")
-
         user_id = session.get("user_id")
         clinician_id = get_user_clinician_id(user_id)
 
-        # Validate mandatory demographic fields
-        if not all([first_name, last_name, date_of_birth, gender]):
-            raise ValueError("All demographic fields are required.")
-
         # Create patient in SQLite
-        patient_id = create_patient(
-            clinician_id, first_name, last_name, date_of_birth, gender
-        )
+        patient_id = create_patient(clinician_id, request.form)
 
         # Insert medical history into MongoDB
-        insert_medical_history(
-            patient_id,
-            {
-                "hypertension": hypertension,
-                "heart_disease": heart_disease,
-                "avg_glucose_level": avg_glucose_level,
-                "bmi": bmi,
-                "stroke": stroke,
-            },
-        )
+        insert_medical_history(patient_id, request.form)
 
         # Insert lifestyle info into MongoDB
-        insert_lifestyle(
-            patient_id,
-            {
-                "ever_married": ever_married,
-                "work_type": work_type,
-                "resident_type": resident_type,
-                "smoking_status": smoking_status,
-            },
-        )
+        insert_lifestyle(patient_id, request.form)
+
+        patient = get_patient_by_id(patient_id)
 
         log_action(
             "NEW PATIENT CREATED",
             user_id,
-            {"patient_id": patient_id, "clinician_id": clinician_id},
+            {
+                "patient_id": patient_id,
+                "clinician_id": clinician_id,
+                "created_at": patient["created_at"],
+            },
         )
 
         flash("Patient created successfully!", "success")
@@ -396,13 +356,84 @@ def create_patient_post():
 
 
 # --------------------------------------
+# GET: Show update patient page
+# --------------------------------------
+@app.route("/patients/<int:patient_id>/edit", methods=["GET"])
+@login_required
+@clinician_patient_only
+def edit_patient_get(patient_id):
+    patient = get_patient_by_id(patient_id)
+    lifestyle = get_lifestyle(patient_id)
+    medical = get_medical_history(patient_id)
+
+    role = session.get("role_name")
+
+    return render_template(
+        "patients/edit_patient.html",
+        patient=patient,
+        lifestyle=lifestyle,
+        medical=medical,
+        role=role,
+    )
+
+
+# --------------------------------------
+# POST: Handle update patient logic
+# --------------------------------------
+@app.route("/patients/<int:patient_id>/edit", methods=["POST"])
+@login_required
+@clinician_patient_only
+def edit_patient_post(patient_id):
+    try:
+        update_patient(patient_id, request.form)
+        update_lifestyle(patient_id, request.form)
+        update_medical_history(patient_id, request.form)
+        updated_at = utc_now()
+
+        user_id = session.get("user_id")
+        clinician_id = get_user_clinician_id(user_id)
+
+        log_action(
+            "PATIENT UPDATED",
+            user_id,
+            {
+                "patient_id": patient_id,
+                "clinician_id": clinician_id,
+                "updated_at": updated_at,
+            },
+        )
+
+        flash("Patient updated successfully!", "success")
+        return redirect(url_for("view_patient", patient_id=patient_id))
+
+    except sqlite3.Error as e:
+        flash(f"Error while updating patient: {e}", "danger")
+        return redirect(url_for("edit_patient_get", patient_id=patient_id))
+    except Exception as e:
+        flash(f"Unknown error occurred!: {e}", "danger")
+        return redirect(url_for("edit_patient_get", patient_id=patient_id))
+
+
+# --------------------------------------
 # GET: View single patient detail page
 # --------------------------------------
 @app.route("/patients/<int:patient_id>", methods=["GET"])
 @login_required
 @patient_clinician_required
 def view_patient(patient_id):
-    return render_template("patients/view_patient.html", patient_id=patient_id)
+    patient = get_patient_by_id(patient_id)
+    lifestyle = get_lifestyle(patient_id)
+    medical = get_medical_history(patient_id)
+
+    role_name = session.get("role_name")
+
+    return render_template(
+        "patients/view_patient.html",
+        patient=patient,
+        lifestyle=lifestyle,
+        medical=medical,
+        role=role_name,
+    )
 
 
 # --------------------------------------

@@ -56,7 +56,7 @@ def init_sqlite_db():
             user_id INTEGER NOT NULL UNIQUE,
             full_name TEXT NOT NULL,
             specialization TEXT,
-            license_number TEXT,
+            license_number TEXT NOT NULL UNIQUE,
             created_at TEXT NOT NULL,
             updated_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users(id)

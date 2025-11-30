@@ -3,7 +3,7 @@ from models.auth.auth import get_user_by_username
 from utils.config import Config
 
 
-def validate_registration_form(username, role_name):
+def validate_registration_form(username, license_number, role_name):
     if not (username and role_name):
         raise ValueError("All fields are required.")
 
@@ -11,6 +11,12 @@ def validate_registration_form(username, role_name):
     if not Config.USERNAME_PATTERN.fullmatch(username):
         raise ValueError(
             "Username is invalid. Use 3–20 characters: letters, numbers, underscores."
+        )
+
+    # Licence number format validation
+    if not Config.LICENSE_NUMBER_PATTERN.fullmatch(license_number):
+        raise ValueError(
+            "License number is invalid. Format: 3 uppercase letters followed by 4–6 digits"
         )
 
     # Check that role exists

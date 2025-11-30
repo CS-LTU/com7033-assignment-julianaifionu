@@ -39,6 +39,14 @@ a {
 }
 
 /* Patients */
+.view_patient.card strong {
+	color: #2f2f2f;
+}
+
+.view_patient.card {
+	background: #ffffff;
+}
+
 .steps-wrapper {
 	display: flex;
 	justify-content: center;

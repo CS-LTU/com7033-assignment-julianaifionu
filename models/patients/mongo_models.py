@@ -16,7 +16,8 @@ def insert_medical_history(patient_id, data):
         "avg_glucose_level": float(data.get("avg_glucose_level")),
         "bmi": float(data.get("bmi")),
         "stroke": int(data.get("stroke")),
-        "timestamp": utc_now(),
+        "created_at": utc_now(),
+        "updated_at": "N/A",
     }
 
     medical_history_collection.insert_one(document)
@@ -29,7 +30,49 @@ def insert_lifestyle(patient_id, data):
         "work_type": data.get("work_type"),
         "resident_type": data.get("resident_type"),
         "smoking_status": data.get("smoking_status"),
-        "timestamp": utc_now(),
+        "created_at": utc_now(),
+        "updated_at": "N/A",
     }
 
     lifestyle_collection.insert_one(document)
+
+
+def get_medical_history(patient_id):
+    return medical_history_collection.find_one({"patient_id": patient_id})
+
+
+def get_lifestyle(patient_id):
+    return lifestyle_collection.find_one({"patient_id": patient_id})
+
+
+def update_medical_history(patient_id, data):
+    medical_history_collection.update_one(
+        {"patient_id": patient_id},
+        {
+            "$set": {
+                "hypertension": int(data.get("hypertension")),
+                "heart_disease": int(data.get("heart_disease")),
+                "avg_glucose_level": float(data.get("avg_glucose_level")),
+                "bmi": float(data.get("bmi")),
+                "stroke": int(data.get("stroke")),
+                "updated_at": utc_now(),
+            }
+        },
+        upsert=True,
+    )
+
+
+def update_lifestyle(patient_id, data):
+    lifestyle_collection.update_one(
+        {"patient_id": patient_id},
+        {
+            "$set": {
+                "ever_married": data.get("ever_married"),
+                "work_type": data.get("work_type"),
+                "resident_type": data.get("resident_type"),
+                "smoking_status": data.get("smoking_status"),
+                "updated_at": utc_now(),
+            }
+        },
+        upsert=True,
+    )

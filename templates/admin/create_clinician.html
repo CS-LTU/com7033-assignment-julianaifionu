@@ -9,7 +9,9 @@ block content %}
 				<form method="POST" action="{{ url_for('create_clinician_post') }}">
 					<div class="row">
 						<div class="col-md-6 mb-3">
-							<label for="username" class="form-label">Username</label>
+							<label for="username" class="form-label"
+								>Username <span class="text-danger">*</span></label
+							>
 							<input
 								id="username"
 								type="text"
@@ -18,7 +20,9 @@ block content %}
 							/>
 						</div>
 						<div class="col-md-6 mb-3">
-							<label for="full_name" class="form-label">Full Name</label>
+							<label for="full_name" class="form-label"
+								>Full Name <span class="text-danger">*</span></label
+							>
 							<input
 								id="full_name"
 								type="text"
@@ -30,18 +34,22 @@ block content %}
 
 					<div class="mb-3">
 						<label for="specialization" class="form-label"
-							>Specialization</label
+							>Specialization <span class="text-danger">*</span></label
 						>
-						<input
+						<select
+							class="form-select"
 							id="specialization"
 							name="specialization"
-							class="form-control"
-						/>
+						>
+							<option value="">-- choose --</option>
+							<option value="nurse">Nurse</option>
+							<option value="doctor">Doctor</option>
+						</select>
 					</div>
 
 					<div class="mb-3">
 						<label for="license_number" class="form-label"
-							>License_number</label
+							>License Number <span class="text-danger">*</span></label
 						>
 						<input
 							id="license_number"

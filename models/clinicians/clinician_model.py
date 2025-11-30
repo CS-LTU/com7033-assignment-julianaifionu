@@ -54,7 +54,7 @@ def get_all_clinicians():
 
     rows = cur.fetchall()
     conn.close()
-    return rows
+    return list(rows) if rows else []
 
 
 def get_clinician_user_id(clinician_id):

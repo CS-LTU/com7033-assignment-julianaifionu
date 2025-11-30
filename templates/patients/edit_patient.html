@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Edit Patient{% endblock %}
+{% block content %}
+<div class="container mt-4">
+	<div class="card shadow-sm p-4">
+		<h3 class="mb-3 text-center">Edit Patient</h3>
+		<form action="" method="POST">
+
+			<!-- DEMOGRAPHICS -->
+			<h5 class="text-secondary mb-3">Demographics</h5>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label">First Name</label>
+					<input name="first_name" class="form-control" value="{{ patient.first_name }}">
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Last Name</label>
+					<input name="last_name" class="form-control" value="{{ patient.last_name }}">
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Date of Birth</label>
+					<input type="date" name="date_of_birth" class="form-control"value="{{ patient.date_of_birth }}">
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Gender</label>
+					<select name="gender" class="form-select">
+						<option value="female" {% if patient.gender == 'female' %}selected{% endif %}>Female</option>
+						<option value="male" {% if patient.gender == 'male' %}selected{% endif %}>Male</option>
+					</select>
+				</div>
+			</div>
+			<hr class="my-4">
+
+			<!-- LIFESTYLE -->
+			<h5 class="text-secondary mb-2">Lifestyle</h5>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Ever Married</label>
+					<select name="ever_married" class="form-select">
+						<option value="yes" {% if medical.stroke == 'yes' %}selected{% endif %}>Yes</option>
+						<option value="no" {% if medical.stroke == 'no' %}selected{% endif %}>No</option>
+					</select>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Work Type</label>
+					<select name="work_type" class="form-select">
+						{% for val in ['Private','Self-employed','Govt_job','Children','Never_worked'] %}
+              <option value="{{ val.lower() }}" {% if lifestyle.work_type == val %}selected{% endif %}>{{ val }}</option>
+            {% endfor %}
+					</select>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Resident Type</label>
+					<select name="resident_type" class="form-select">
+						<option value="urban" {% if lifestyle.resident_type == 'urban' %}selected{% endif %}>Urban</option>
+						<option value="rural" {% if lifestyle.resident_type == 'rural' %}selected{% endif %}>Rural</option>
+					</select>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Smoking Status</label>
+					<select name="smoking_status" class="form-select">
+						<option value="never smoked" {% if lifestyle.smoking_status == 'never smoked'  %}selected{% endif %}>Never Smoked</option>
+						<option value="formerly smoked" {% if lifestyle.smoking_status == 'formerly smoked'  %}selected{% endif %}>Former Smoker</option>
+						<option value="smokes" {% if lifestyle.smoking_status == 'smokes'  %}selected{% endif %}>Smokes</option>
+					</select>
+				</div>
+			</div>
+			<hr class="my-4">
+
+			<!-- MEDICAL -->
+			<h5 class="text-secondary mb-2">Medical History</h5>
+			<div class="row">
+				<div class="col-md-4 mb-3">
+					<label class="form-label">Hypertension</label>
+					<select name="hypertension" class="form-select">
+						<option value="0" {% if medical.hypertension == 0 %}selected{% endif %}>No</option>
+						<option value="1" {% if medical.hypertension == 1 %}selected{% endif %}>Yes</option>
+					</select>
+				</div>
+				<div class="col-md-4 mb-3">
+					<label class="form-label">Heart Disease</label>
+					<select name="heart_disease" class="form-select">
+						<option value="0" {% if medical.heart_disease == 0 %}selected{% endif %}>No</option>
+						<option value="1" {% if medical.heart_disease == 1 %}selected{% endif %}>Yes</option>
+					</select>
+				</div>
+				<div class="col-md-4 mb-3">
+					<label class="form-label">Stroke History</label>
+					<select name="stroke" class="form-select">
+						<option value="0" {% if medical.stroke == 0 %}selected{% endif %}>No</option>
+						<option value="1" {% if medical.stroke == 1 %}selected{% endif %}>Yes</option>
+					</select>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Average Glucose Level</label>
+					<input name="avg_glucose_level" class="form-control" value="{{ medical.avg_glucose_level }}" type="number" step="0.1">
+				</div>
+
+				<div class="col-md-6 mb-3">
+					<label class="form-label">BMI</label>
+					<input name="bmi" class="form-control" value="{{ medical.bmi }}" type="number" step="0.1">
+				</div>
+			</div>
+			<button class="btn btn-primary w-100 mt-3">Save Changes</button>
+		</form>
+	</div>
+</div>
+{% endblock %}

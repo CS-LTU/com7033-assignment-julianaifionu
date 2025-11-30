@@ -48,6 +48,25 @@ def clinician_required(f):
     return wrapper
 
 
+def validate_patient_access(patient_id):
+    """Returns (patient, clinician_user_id) or (None, None) if invalid."""
+    if patient_id is None:
+        flash("Invalid patient selected.", "danger")
+        return None, None
+
+    patient = get_patient_by_id(patient_id)
+    if not patient:
+        flash("Patient not found.", "danger")
+        return None, None
+
+    clinician_user_id = get_clinician_user_id(patient["clinician_id"])
+    if not clinician_user_id:
+        flash("Clinician information missing.", "danger")
+        return None, None
+
+    return patient, clinician_user_id
+
+
 def patient_clinician_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -55,25 +74,10 @@ def patient_clinician_required(f):
         user_id = session.get("user_id")
         role_name = session.get("role_name")
 
-        if not user_id:
-            flash("Please log in to continue.", "warning")
-            return redirect(url_for("auth.login"))
-
         patient_id = kwargs.get("patient_id")
-        if patient_id is None:
-            flash("Invalid patient selected.", "danger")
-            return redirect(url_for("dashboard"))
+        patient, clinician_user_id = validate_patient_access(patient_id)
 
-        patient = get_patient_by_id(patient_id)
-        if not patient:
-            flash("Patient not found.", "danger")
-            return redirect(url_for("dashboard"))
-
-        clinician_id = patient["clinician_id"]
-        clinician_user_id = get_clinician_user_id(clinician_id)
-        
-        if not clinician_user_id:
-            flash("Clinician information missing.", "danger")
+        if not (patient and clinician_user_id):
             return redirect(url_for("dashboard"))
 
         if role_name == "clinician" and user_id == clinician_user_id:
@@ -84,5 +88,27 @@ def patient_clinician_required(f):
 
         flash("You do not have permission to access this patient record.", "danger")
         return redirect(url_for("dashboard"))
+
+    return wrapper
+
+
+def clinician_patient_only(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+
+        user_id = session.get("user_id")
+        role_name = session.get("role_name")
+
+        patient_id = kwargs.get("patient_id")
+        patient, clinician_user_id = validate_patient_access(patient_id)
+
+        if not (patient and clinician_user_id):
+            return redirect(url_for("dashboard"))
+
+        if role_name == "clinician" and user_id == clinician_user_id:
+            return f(*args, **kwargs)
+
+        flash("You do not have permission to edit this patient record.", "danger")
+        return redirect(url_for("view_patient", patient_id=patient_id))
 
     return wrapper
