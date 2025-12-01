@@ -80,3 +80,50 @@ def get_user_clinician_id(user_id):
     row = cur.fetchone()
     conn.close()
     return row["id"] if row else None
+
+
+def archived_patients_clinician_count(clienician_id):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) AS total FROM patients WHERE is_archived = 1 AND clinician_id = ?",
+        (clienician_id,),
+    )
+    row = cur.fetchone()
+    conn.close()
+
+    return row["total"] if row else 0
+
+
+def active_patients_clinician_count(clinician_id):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) AS total FROM patients WHERE is_archived = 0 AND clinician_id = ?",
+        (clinician_id,),
+    )
+    row = cur.fetchone()
+    conn.close()
+
+    return row["total"] if row else 0
+
+
+def new_patients_clinician_today_count(clinician_id):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+				SELECT COUNT(*) AS new
+				FROM patients
+				WHERE DATE(created_at) = DATE('now', 'localtime') AND clinician_id = ?
+				""",
+        (clinician_id,),
+    )
+
+    row = cur.fetchone()
+    conn.close()
+
+    return row["new"] if row else 0

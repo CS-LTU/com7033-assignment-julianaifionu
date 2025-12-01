@@ -10,6 +10,9 @@ from models.clinicians.clinician_model import (
     create_clinician_profile,
     get_all_clinicians,
     get_user_clinician_id,
+    archived_patients_clinician_count,
+    active_patients_clinician_count,
+    new_patients_clinician_today_count,
 )
 
 from models.users.user_model import create_user, update_user_activation
@@ -64,8 +67,8 @@ initialize()
 # --------------------------------------
 # Custom filter to format ISO UTC strings nicely
 # --------------------------------------
-@app.template_filter("human_date")
-def human_date(iso_string: str) -> str:
+@app.template_filter("humanize_date")
+def humanize_date(iso_string: str) -> str:
     """
     Converts ISO 8601 string to '30 Nov 2025, 10:31 PM' format.
     """
@@ -135,17 +138,25 @@ def admin_dashboard():
 @app.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():
-    user = get_current_user()
+    user_id = session.get("user_id")
+    role_name = session.get("role_name")
 
-    if not user:
-        return redirect(url_for("login_get"))
-
-    if user["role_name"] == "admin":
+    if role_name == "admin":
         return redirect(url_for("admin_dashboard"))
 
-    patients = get_all_patients_for_clinician(user["id"])
+    clinician_id = get_user_clinician_id(user_id)
+    patients = get_all_patients_for_clinician(clinician_id)
+    archived_patients = archived_patients_clinician_count(clinician_id)
+    active_patients = active_patients_clinician_count(clinician_id)
+    new_patients_today = new_patients_clinician_today_count(clinician_id)
 
-    return render_template("clinicians/dashboard.html", user=user, patients=patients)
+    return render_template(
+        "clinicians/dashboard.html",
+        patients=patients,
+        archived_patients=archived_patients,
+        active_patients=active_patients,
+        new_patients_today=new_patients_today,
+    )
 
 
 # --------------------------------------

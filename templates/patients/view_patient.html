@@ -6,7 +6,7 @@ block content %}
 	>
 		<div>
 			<h2 class="fw-bold mb-1 d-flex align-items-center">
-				<i class="bi bi-person-lines-fill me-2"></i>
+				<i class="bi bi-person-circle me-3 text-primary"></i>
 				{{ patient.first_name }} {{ patient.last_name }}
 			</h2>
 
@@ -35,13 +35,9 @@ block content %}
 		</div>
 		{% endif %}
 	</div>
-
 	<div class="view_patient card shadow-sm border-0 rounded-4 p-4">
 		<!-- DEMOGRAPHICS -->
-		<h5 class="fw-semibold mb-3">
-			<i class="bi bi-person-fill me-2 text-primary"></i> Demographic
-		</h5>
-
+		<h5 class="fw-semibold mb-3">Demographic</h5>
 		<div class="row mb-4">
 			<div class="col-md-6 mb-2">
 				<strong>Name:</strong> {{ patient.first_name }} {{ patient.last_name }}
@@ -53,17 +49,12 @@ block content %}
 				<strong>Date of Birth:</strong> {{ patient.date_of_birth }}
 			</div>
 			<div class="col-md-6 mb-2">
-				<strong>Created:</strong> {{ patient.created_at }}
+				<strong>Created:</strong> {{ patient.created_at | humanize_date }}
 			</div>
 		</div>
-
 		<hr />
-
 		<!-- LIFESTYLE -->
-		<h5 class="fw-semibold mb-3">
-			<i class="bi bi-heart-fill text-success me-2"></i> Lifestyle
-		</h5>
-
+		<h5 class="fw-semibold mb-3">Lifestyle</h5>
 		{% if lifestyle %}
 		<div class="row mb-4">
 			<div class="col-md-6 mb-2">
@@ -90,10 +81,7 @@ block content %}
 		<hr />
 
 		<!-- MEDICAL -->
-		<h5 class="fw-semibold mb-3">
-			<i class="bi bi-clipboard-pulse-fill text-danger me-2"></i> Medical
-			History
-		</h5>
+		<h5 class="fw-semibold mb-3">Medical History</h5>
 
 		{% if medical %}
 		<div class="row mb-4">

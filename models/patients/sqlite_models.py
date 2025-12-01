@@ -66,22 +66,12 @@ def get_all_patients():
     return rows
 
 
-def get_all_patients_for_clinician(user_id):
+def get_all_patients_for_clinician(clinician_id):
     """
-    Returns all patients assigned to a clinician using user_id.
+    Returns all patients assigned to a clinician.
     """
-
     conn = get_db()
     cur = conn.cursor()
-
-    cur.execute("SELECT id FROM clinicians WHERE user_id = ?", (user_id,))
-    row = cur.fetchone()
-
-    if not row:
-        conn.close()
-        return []
-
-    clinician_id = row["id"]
 
     cur.execute(
         """
@@ -91,7 +81,8 @@ def get_all_patients_for_clinician(user_id):
             patients.last_name,
             patients.date_of_birth,
             patients.gender,
-            patients.created_at
+            patients.created_at,
+            patients.is_archived
 
         FROM patients
         WHERE patients.clinician_id = ?
