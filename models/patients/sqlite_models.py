@@ -48,6 +48,7 @@ def get_all_patients():
             patients.date_of_birth,
             patients.gender,
             patients.created_at AS patient_created_at,
+            patients.is_archived,
 
             clinicians.id AS clinician_id,
             clinicians.full_name AS clinician_name,
@@ -174,3 +175,47 @@ def is_patient_archived(patient_id):
     if not patient:
         raise ValueError("Patient not found.")
     return patient["is_archived"]
+
+
+def total_archived_patients_count():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) AS total_archived_patients FROM patients WHERE is_archived = 1"
+    )
+    row = cur.fetchone()
+    conn.close()
+
+    return row["total_archived_patients"] if row else 0
+
+
+def total_active_patients_count():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) AS total_active_patients FROM patients WHERE is_archived = 0"
+    )
+    row = cur.fetchone()
+    conn.close()
+
+    return row["total_active_patients"] if row else 0
+
+
+def new_patients_today_count():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+				SELECT COUNT(*) AS new_patients_today
+				FROM patients
+				WHERE DATE(created_at) = DATE('now', 'localtime')
+				"""
+    )
+
+    row = cur.fetchone()
+    conn.close()
+
+    return row["new_patients_today"] if row else 0

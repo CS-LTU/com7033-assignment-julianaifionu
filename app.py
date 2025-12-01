@@ -1,5 +1,5 @@
 import sqlite3
-
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from models.auth.auth import (
     authenticate_user,
@@ -30,6 +30,9 @@ from models.patients.sqlite_models import (
     get_patient_by_id,
     archive_patient_service,
     is_patient_archived,
+    total_archived_patients_count,
+    total_active_patients_count,
+    new_patients_today_count,
 )
 from utils.services_logging import log_action
 from utils.validations import (
@@ -56,6 +59,18 @@ app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
 
 initialize()
+
+
+# --------------------------------------
+# Custom filter to format ISO UTC strings nicely
+# --------------------------------------
+@app.template_filter("human_date")
+def human_date(iso_string: str) -> str:
+    """
+    Converts ISO 8601 string to '30 Nov 2025, 10:31 PM' format.
+    """
+    dt = datetime.fromisoformat(iso_string)
+    return dt.strftime("%d %b %Y, %I:%M %p")
 
 
 # --------------------------------------
@@ -99,12 +114,18 @@ def admin_dashboard():
     user = get_current_user()
     clinicians = get_all_clinicians()
     patients = get_all_patients()
+    archived_patients = total_archived_patients_count()
+    active_patients = total_active_patients_count()
+    new_patients_today = new_patients_today_count()
 
     return render_template(
         "admin/dashboard.html",
         user=user,
         clinicians=clinicians,
         patients=patients,
+        archived_patients=archived_patients,
+        active_patients=active_patients,
+        new_patients_today=new_patients_today,
     )
 
 
