@@ -26,6 +26,7 @@ from utils.decorators import (
 from models.patients.sqlite_models import (
     get_all_patients_for_clinician,
     get_all_patients,
+    archive_patient_service,
 )
 from utils.services_logging import log_action
 from utils.validations import validate_registration_form
@@ -210,7 +211,7 @@ def edit_clinician_post(clinician_id):
         return redirect(url_for("admin.edit_clinician_get", clinician_id=clinician_id))
 
 
-@admin_bp.route("/clinicians/<clinician_id>/archive", methods=["POST"])
+@admin_bp.route("/clinicians/<int:clinician_id>/archive", methods=["POST"])
 @login_required
 @admin_required
 def archive_clinician(clinician_id):
@@ -237,3 +238,40 @@ def archive_clinician(clinician_id):
         flash(f"Unknown error occurred!", "danger")
         return redirect(url_for("admin.view_clinician", clinician_id=clinician_id))
 
+
+@admin_bp.route("/patients", methods=["GET"])
+@login_required
+@admin_required
+def view_patients():
+    patients = get_all_patients()
+    return render_template(
+        "admin/patients/list.html",
+        patients=patients,
+    )
+
+
+@admin_bp.route("/patients/<int:patient_id>/archive", methods=["POST"])
+@login_required
+@admin_required
+def admin_archive_patient(patient_id):
+    try:
+        archive_patient_service(patient_id)
+
+        user_id = session.get("user_id")
+
+        log_action(
+            "PATIENT ARCHIVED",
+            user_id,
+            {
+                "patient_id": patient_id,
+                "archived_at": utc_now(),
+            },
+        )
+        flash("Patient has been archived.", "success")
+        return redirect(url_for("admin.view_patients"))
+    except (sqlite3.Error, Exception):
+        flash(f"An error occurred", "danger")
+        return redirect(url_for("admin.view_patients"))
+    except ValueError as e:
+        flash(str(e), "warning")
+        return redirect(url_for("admin.view_patients"))
