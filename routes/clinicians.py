@@ -31,6 +31,7 @@ from models.patients.mongo_models import (
 
 clinician_bp = Blueprint("clinician", __name__)
 
+
 @clinician_bp.route("/dashboard", methods=["GET"])
 @login_required
 @clinician_required
@@ -217,3 +218,17 @@ def archive_patient(patient_id):
     except Exception:
         flash(f"Unknown error occurred!", "danger")
         return redirect(url_for("clinician.view_patient", patient_id=patient_id))
+
+
+@clinician_bp.route("/patients", methods=["GET"])
+@login_required
+@clinician_required
+def view_patients():
+    user_id = session.get("user_id")
+    clinician_id = get_user_clinician_id(user_id)
+    patients = get_all_patients_for_clinician(clinician_id)
+
+    return render_template(
+        "clinicians/patients/list.html",
+        patients=patients,
+    )

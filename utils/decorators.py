@@ -28,7 +28,6 @@ def admin_required(f):
         if role_name != "admin":
             flash("Admin access required.", "danger")
             return redirect(url_for("index"))
-
         return f(*args, **kwargs)
 
     return wrapper
@@ -42,7 +41,6 @@ def clinician_required(f):
         if role_name != "clinician":
             flash("Clinician access required.", "danger")
             return redirect(url_for("index"))
-
         return f(*args, **kwargs)
 
     return wrapper
@@ -67,23 +65,21 @@ def validate_patient_access(patient_id):
 def patient_clinician_or_admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-
         user_id = session.get("user_id")
         role_name = session.get("role_name")
         patient_id = kwargs.get("patient_id")
-        
+
         patient, clinician_user_id = validate_patient_access(patient_id)
 
         if not patient:
             flash("Invalid patient.", "danger")
             return redirect(url_for("index"))
-        
+
         if role_name == "admin":
             return f(*args, **kwargs)
 
         if role_name == "clinician" and user_id == clinician_user_id:
             return f(*args, **kwargs)
-
 
         flash("You do not have permission to access this patient record.", "danger")
         return redirect(url_for("index"))
@@ -97,17 +93,18 @@ def patient_clinician_only(f):
 
         user_id = session.get("user_id")
         role_name = session.get("role_name")
-
         patient_id = kwargs.get("patient_id")
+
         patient, clinician_user_id = validate_patient_access(patient_id)
 
-        if not (patient and clinician_user_id):
-            return redirect(url_for("clinician.dashboard"))
+        if not patient:
+            flash("Invalid patient.", "danger")
+            return redirect(url_for("index"))
 
         if role_name == "clinician" and user_id == clinician_user_id:
             return f(*args, **kwargs)
 
         flash("You do not have permission to edit this patient record.", "danger")
-        return redirect(url_for("clinician.view_patient", patient_id=patient_id))
+        return redirect(url_for("index"))
 
     return wrapper

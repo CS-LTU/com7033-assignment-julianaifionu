@@ -53,8 +53,15 @@
 						<i class="bi bi-person-plus me-1"></i> New Patient
 					</a>
 				</li>
-				{% endif %}
-				{% if role_name == "admin" %}
+				<li class="nav-item">
+					<a
+						class="nav-link text-white d-flex align-items-center"
+						href="{{ url_for('clinician.view_patients') }}"
+					>
+						<i class="bi bi-person-badge me-1"></i> Patients
+					</a>
+				</li>
+				{% endif %} {% if role_name == "admin" %}
 				<li class="nav-item">
 					<a
 						class="nav-link text-white d-flex align-items-center"
@@ -71,9 +78,21 @@
 						<i class="bi bi-person-badge me-1"></i> Clinicians
 					</a>
 				</li>
+				<li class="nav-item">
+					<a
+						class="nav-link text-white d-flex align-items-center"
+						href="{{ url_for('admin.view_patients') }}"
+					>
+						<i class="bi bi-person-badge me-1"></i> Patients
+					</a>
+				</li>
 				{% endif %}
 				<li class="nav-item">
-					<form action="{{ url_for('auth.logout') }}" method="POST" class="d-inline">
+					<form
+						action="{{ url_for('auth.logout') }}"
+						method="POST"
+						class="d-inline"
+					>
 						<button
 							type="submit"
 							class="btn btn-sm btn-outline-light ms-2 d-flex align-items-center"
