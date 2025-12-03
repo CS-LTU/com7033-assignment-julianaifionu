@@ -8,7 +8,7 @@ block content %}
 
 				<form
 					method="POST"
-					action="{{ url_for('activate_account_post', token=token) }}"
+					action="{{ url_for('auth.activate_account_post', token=token) }}"
 				>
 					<div class="mb-3">
 						<label for="new_password" class="form-label">New Password</label>

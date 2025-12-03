@@ -5,7 +5,7 @@ content %}
 		<div class="card shadow-sm">
 			<div class="card-body">
 				<h4 class="text-center mb-3">Sign In</h4>
-				<form method="POST" action="{{ url_for('login_post') }}">
+				<form method="POST" action="{{ url_for('auth.login_post') }}">
 					<div class="mb-3">
 						<label for="username" class="form-label">Username</label>
 						<input id="username" type="text" name="username" class="form-control" />
