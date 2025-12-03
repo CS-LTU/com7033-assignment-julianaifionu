@@ -3,7 +3,7 @@
 		{% if role_name == "admin" %}
 		<a
 			class="navbar-brand fw-bold d-flex align-items-center"
-			href="{{ url_for('admin_dashboard') }}"
+			href="{{ url_for('admin.dashboard') }}"
 		>
 			<i class="bi bi-speedometer2 me-2"></i> Dashboard
 		</a>
@@ -58,7 +58,7 @@
 				<li class="nav-item">
 					<a
 						class="nav-link text-white d-flex align-items-center"
-						href="{{ url_for('create_clinician_get') }}"
+						href="{{ url_for('admin.create_clinician_get') }}"
 					>
 						<i class="bi bi-person-badge me-1"></i> New Clinician
 					</a>

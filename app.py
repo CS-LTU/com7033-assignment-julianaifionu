@@ -7,7 +7,6 @@ from models.auth.auth import (
 )
 from utils.time_formatter import utc_now
 from models.clinicians.clinician_model import (
-    create_clinician_profile,
     get_all_clinicians,
     get_user_clinician_id,
     get_clinician_by_id,
@@ -17,7 +16,7 @@ from models.clinicians.clinician_model import (
     get_clinician_dashboard_stats,
 )
 
-from models.users.user_model import create_user, update_user_activation
+from models.users.user_model import update_user_activation
 from utils.config import Config
 from models.initialize import initialize
 from utils.decorators import (
@@ -28,7 +27,6 @@ from utils.decorators import (
     patient_clinician_only,
 )
 from models.patients.sqlite_models import (
-    get_all_patients,
     get_all_patients_for_clinician,
     update_patient,
     create_patient,
@@ -38,12 +36,10 @@ from models.patients.sqlite_models import (
 )
 from utils.services_logging import log_action
 from utils.validations import (
-    validate_registration_form,
     validate_login_form,
     validate_activation_passwords,
 )
 from models.auth.activation import (
-    generate_activation_token,
     get_valid_activation_user,
     mark_token_used,
 )
@@ -56,16 +52,16 @@ from models.patients.mongo_models import (
     update_lifestyle,
     update_medical_history,
 )
-from models.admin.admin_models import (
-    get_user_admin_stats,
-    get_clinician_admin_stats,
-    get_patient_admin_stats,
-)
+
+from routes import admin_bp
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
 
 initialize()
+
+# Register Blueprints
+app.register_blueprint(admin_bp)
 
 
 # Custom filter to format ISO UTC strings to human-readable dates
@@ -103,96 +99,6 @@ def index():
         return redirect(url_for("admin_dashboard"))
 
     return redirect(url_for("dashboard"))
-
-
-# --------------------------------------
-# ADMIN ROUTES
-# --------------------------------------
-
-
-# GET: Show admin dashboard page
-@app.route("/admin/dashboard")
-@login_required
-@admin_required
-def admin_dashboard():
-    user = get_current_user()
-
-    clinician_stats = get_clinician_admin_stats()
-    patient_stats = get_patient_admin_stats()
-    user_stats = get_user_admin_stats()
-    clinicians = get_all_clinicians()
-    patients = get_all_patients()
-
-    return render_template(
-        "admin/dashboard.html",
-        user=user,
-        clinician_stats=clinician_stats,
-        patient_stats=patient_stats,
-        user_stats=user_stats,
-        clinicians=clinicians,
-        patients=patients,
-    )
-
-
-# GET: Show registration form for admin to create clinician
-@app.route("/admin/clinicians/create", methods=["GET"])
-@admin_required
-def create_clinician_get():
-    return render_template("admin/create_clinician.html")
-
-
-# POST: Handle clinician registration logic
-@app.route("/admin/clinicians/create", methods=["POST"])
-@admin_required
-def create_clinician_post():
-    username = (request.form.get("username") or "").strip()
-    full_name = (request.form.get("full_name") or "").strip()
-    specialization = (request.form.get("specialization") or "").strip()
-    license_number = (request.form.get("license_number") or "").strip()
-
-    try:
-        validate_registration_form(username, license_number, "clinician")
-        user_id = create_user(username, "clinician")
-
-        create_clinician_profile(
-            user_id=user_id,
-            full_name=full_name,
-            specialization=specialization,
-            license_number=license_number,
-        )
-
-        raw_token = generate_activation_token(user_id)
-        activation_link = url_for(
-            "activate_account_get", token=raw_token, _external=True
-        )
-
-        # Log event
-        log_action(
-            "INVITE_CLINICIAN",
-            session.get("user_id"),
-            {
-                "invited_user_id": user_id,
-                "username": username,
-                "activation_link": activation_link,
-            },
-        )
-
-        return redirect(url_for("user_created", activation_link=activation_link))
-
-    except sqlite3.Error as e:
-        flash(f"Database error occurred. {e}", "danger")
-        return redirect(url_for("create_clinician_get"))
-    except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for("create_clinician_get"))
-
-
-# GET: Show success user creation page
-@app.route("/admin/user_created", methods=["GET"])
-def user_created():
-    activation_link = request.args.get("activation_link")
-
-    return render_template("admin/user_created.html", activation_link=activation_link)
 
 
 # --------------------------------------
