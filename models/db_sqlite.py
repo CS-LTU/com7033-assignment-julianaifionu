@@ -57,6 +57,8 @@ def init_sqlite_db():
             full_name TEXT NOT NULL,
             specialization TEXT,
             license_number TEXT NOT NULL UNIQUE,
+            is_archived BOOLEAN NOT NULL DEFAULT 0,
+						archived_at TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users(id)
