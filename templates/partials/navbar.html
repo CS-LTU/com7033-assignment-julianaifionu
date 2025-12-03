@@ -10,7 +10,7 @@
 		{% else %}
 		<a
 			class="navbar-brand fw-bold d-flex align-items-center"
-			href="{{ url_for('dashboard') }}"
+			href="{{ url_for('clinician.dashboard') }}"
 		>
 			<i class="bi bi-speedometer2 me-2"></i> Dashboard
 		</a>
@@ -48,7 +48,7 @@
 				<li class="nav-item">
 					<a
 						class="nav-link text-white d-flex align-items-center"
-						href="{{ url_for('create_patient_get') }}"
+						href="{{ url_for('clinician.create_patient_get') }}"
 					>
 						<i class="bi bi-person-plus me-1"></i> New Patient
 					</a>
@@ -66,14 +66,14 @@
 				<li class="nav-item">
 					<a
 						class="nav-link text-white d-flex align-items-center"
-						href="{{ url_for('view_clinicians') }}"
+						href="{{ url_for('admin.view_clinicians') }}"
 					>
 						<i class="bi bi-person-badge me-1"></i> Clinicians
 					</a>
 				</li>
 				{% endif %}
 				<li class="nav-item">
-					<form action="{{ url_for('logout') }}" method="POST" class="d-inline">
+					<form action="{{ url_for('auth.logout') }}" method="POST" class="d-inline">
 						<button
 							type="submit"
 							class="btn btn-sm btn-outline-light ms-2 d-flex align-items-center"
@@ -85,7 +85,7 @@
 
 				{% else %}
 				<li class="nav-item">
-					<a class="nav-link text-white" href="{{ url_for('login_get') }}">
+					<a class="nav-link text-white" href="{{ url_for('auth.login_get') }}">
 						<i class="bi bi-box-arrow-in-right me-1"></i> Login
 					</a>
 				</li>

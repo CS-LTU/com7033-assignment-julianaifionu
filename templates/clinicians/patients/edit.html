@@ -4,7 +4,7 @@
 <div class="container mt-4">
 	<div class="card shadow-sm p-4">
 		<h3 class="mb-3 text-center">Edit Patient</h3>
-		<form action="" method="POST">
+		<form action="{{ url_for('clinician.edit_patient_post', patient_id=patient.id) }}" method="POST">
 
 			<!-- DEMOGRAPHICS -->
 			<h5 class="text-secondary mb-3">Demographics</h5>
