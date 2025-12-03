@@ -171,7 +171,7 @@ block content %}
 								</td>
 								<td>
 									<a
-										href="{{ url_for('view_clinician', clinician_id=c['clinician_id']) }}"
+										href="{{ url_for('admin.view_clinician', clinician_id=c['clinician_id']) }}"
 										class="btn btn-sm btn-outline-primary"
 										>View</a
 									>
@@ -219,7 +219,7 @@ block content %}
 								</td>
 								<td>
 									<a
-										href="{{ url_for('view_patient', patient_id=p['patient_id']) }}"
+										href="{{ url_for('clinician.view_patient', patient_id=p['patient_id']) }}"
 										class="btn btn-sm btn-outline-primary"
 										>View</a
 									>

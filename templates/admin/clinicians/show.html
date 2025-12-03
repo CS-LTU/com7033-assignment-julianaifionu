@@ -31,13 +31,13 @@ block content %}
 		{% if role_name == "admin" and not clinician.is_archived %}
 		<div class="d-flex gap-2">
 			<a
-				href="{{ url_for('edit_clinician_get', clinician_id=clinician.clinician_id) }}"
+				href="{{ url_for('admin.edit_clinician_get', clinician_id=clinician.clinician_id) }}"
 				class="btn btn-primary px-4"
 			>
 				<i class="bi bi-pencil-square me-1"></i> Edit
 			</a>
 			<form
-				action="{{ url_for('archive_clinician', clinician_id=clinician.clinician_id) }}"
+				action="{{ url_for('admin.archive_clinician', clinician_id=clinician.clinician_id) }}"
 				method="POST"
 			>
 				<button type="submit" class="btn btn-danger px-4">
@@ -120,7 +120,7 @@ block content %}
 						<td>{{ p.created_at | humanize_date }}</td>
 						<td>
 							<a
-								href="{{ url_for('view_patient', patient_id=p.patient_id) }}"
+								href="{{ url_for('clinician.view_patient', patient_id=p.patient_id) }}"
 								class="btn btn-sm btn-outline-primary"
 							>
 								View →
