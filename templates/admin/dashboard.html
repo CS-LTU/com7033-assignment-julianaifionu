@@ -5,9 +5,46 @@ block content %}
 	<div class="d-flex justify-content-between align-items-center mb-4">
 		<h2 class="fw-bold">Dashboard Overview</h2>
 	</div>
-
 	<div class="row g-3 mb-4">
-		<!-- Total Clinicians -->
+		<div class="col-md-4 col-lg-3">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body d-flex align-items-center">
+					<div class="me-3 text-primary">
+						<i class="bi bi-people fs-1"></i>
+					</div>
+					<div>
+						<p class="text-muted mb-0">Total Users</p>
+						<h3 class="fw-bold">{{ user_stats.total }}</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-lg-3">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body d-flex align-items-center">
+					<div class="me-3 text-success">
+						<i class="bi bi-check-circle-fill fs-1"></i>
+					</div>
+					<div>
+						<p class="text-muted mb-0">Activated Users</p>
+						<h3 class="fw-bold">{{ user_stats.active }}</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-lg-3">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body d-flex align-items-center">
+					<div class="me-3 text-warning">
+						<i class="bi bi-exclamation-circle-fill fs-1"></i>
+					</div>
+					<div>
+						<p class="text-muted mb-0">Inactive Users</p>
+						<h3 class="fw-bold">{{ user_stats.inactive }}</h3>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="col-md-4 col-lg-3">
 			<div class="card shadow-sm border-0 h-100">
 				<div class="card-body d-flex align-items-center">
@@ -15,29 +52,25 @@ block content %}
 						<i class="bi bi-person-badge-fill fs-1"></i>
 					</div>
 					<div>
-						<p class="text-muted mb-0">Clinicians</p>
-						<h3 class="fw-bold">{{ clinicians|length }}</h3>
+						<p class="text-muted mb-0">Total Clinicians</p>
+						<h3 class="fw-bold">{{ clinician_stats.total }}</h3>
 					</div>
 				</div>
 			</div>
 		</div>
-
-		<!-- Total Patients -->
 		<div class="col-md-4 col-lg-3">
 			<div class="card shadow-sm border-0 h-100">
 				<div class="card-body d-flex align-items-center">
 					<div class="me-3 text-success">
-						<i class="bi bi-people-fill fs-1"></i>
+						<i class="bi bi-person-check-fill fs-1"></i>
 					</div>
 					<div>
-						<p class="text-muted mb-0">Patients</p>
-						<h3 class="fw-bold">{{ patients|length }}</h3>
+						<p class="text-muted mb-0">Active Clinicians</p>
+						<h3 class="fw-bold">{{ clinician_stats.active }}</h3>
 					</div>
 				</div>
 			</div>
 		</div>
-
-		<!-- Total Archived Patients -->
 		<div class="col-md-4 col-lg-3">
 			<div class="card shadow-sm border-0 h-100">
 				<div class="card-body d-flex align-items-center">
@@ -45,38 +78,60 @@ block content %}
 						<i class="bi bi-archive-fill fs-1"></i>
 					</div>
 					<div>
-						<p class="text-muted mb-0">Archived</p>
-						<h3 class="fw-bold">{{ archived_patients }}</h3>
+						<p class="text-muted mb-0">Archived Clinicians</p>
+						<h3 class="fw-bold">{{ clinician_stats.archived }}</h3>
 					</div>
 				</div>
 			</div>
 		</div>
-
-		<!-- Total Active Patients -->
-		<div class="col-md-4 col-lg-3">
-			<div class="card shadow-sm border-0 h-100">
-				<div class="card-body d-flex align-items-center">
-					<div class="me-3 text-warning">
-						<i class="bi bi-lightning-fill fs-1"></i>
-					</div>
-					<div>
-						<p class="text-muted mb-0">Active</p>
-						<h3 class="fw-bold">{{ active_patients }}</h3>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- New Patients Today -->
 		<div class="col-md-4 col-lg-3">
 			<div class="card shadow-sm border-0 h-100">
 				<div class="card-body d-flex align-items-center">
 					<div class="me-3 text-info">
+						<i class="bi bi-hospital-fill fs-1"></i>
+					</div>
+					<div>
+						<p class="text-muted mb-0">Total Patients</p>
+						<h3 class="fw-bold">{{ patient_stats.total }}</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-lg-3">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body d-flex align-items-center">
+					<div class="me-3 text-success">
+						<i class="bi bi-person-heart fs-1"></i>
+					</div>
+					<div>
+						<p class="text-muted mb-0">Active Patients</p>
+						<h3 class="fw-bold">{{ patient_stats.active }}</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-lg-3">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body d-flex align-items-center">
+					<div class="me-3 text-danger">
+						<i class="bi bi-archive-fill fs-1"></i>
+					</div>
+					<div>
+						<p class="text-muted mb-0">Archived Patients</p>
+						<h3 class="fw-bold">{{ patient_stats.archived }}</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-lg-3">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body d-flex align-items-center">
+					<div class="me-3 text-primary">
 						<i class="bi bi-graph-up-arrow fs-1"></i>
 					</div>
 					<div>
 						<p class="text-muted mb-0">New Patients Today</p>
-						<h3 class="fw-bold">{{ new_patients_today }}</h3>
+						<h3 class="fw-bold">{{ patient_stats.new }}</h3>
 					</div>
 				</div>
 			</div>
@@ -86,40 +141,40 @@ block content %}
 		<div class="col-12 col-lg-6">
 			{% if clinicians %}
 			<div class="card shadow-sm border-0 h-100">
-				<div
-					class="card-header d-flex justify-content-between align-items-center bg-white"
-				>
+				<div class="card-header bg-white">
 					<h3 class="mb-0 fw-bold">Clinicians</h3>
 				</div>
 
 				<div class="table-responsive">
 					<table class="table table-hover table-sm mb-0">
 						<thead class="table-light small">
-							<tr class="">
-								<th scope="col">Full Name</th>
-								<th scope="col">Specialisation</th>
-								<th scope="col">Status</th>
+							<tr>
+								<th>Name</th>
+								<th>Specialisation</th>
+								<th>Status</th>
+								<th>Action</th>
 							</tr>
 						</thead>
-
 						<tbody>
 							{% for c in clinicians[:5] %}
-
 							<tr class="align-middle">
-								<td>
-									<div class="small text-muted">{{ c["full_name"] }}</div>
-								</td>
-
+								<td>{{ c["full_name"] }}</td>
 								<td class="small text-muted">
 									{{ c["specialization"]|capitalize }}
 								</td>
-
 								<td>
-									{% if c["is_active"] %}
-									<span class="badge bg-success">Active</span>
+									{% if c["is_archived"] %}
+									<span class="badge bg-secondary">Archived</span>
 									{% else %}
-									<span class="badge bg-secondary">Inactive</span>
+									<span class="badge bg-success">Active</span>
 									{% endif %}
+								</td>
+								<td>
+									<a
+										href="{{ url_for('view_clinician', clinician_id=c['clinician_id']) }}"
+										class="btn btn-sm btn-outline-primary"
+										>View</a
+									>
 								</td>
 							</tr>
 							{% endfor %}
@@ -129,17 +184,14 @@ block content %}
 			</div>
 			{% else %}
 			<div class="text-center mt-5">
-				<h5>No clinician found.</h5>
+				<h5>No clinicians found.</h5>
 			</div>
 			{% endif %}
 		</div>
-
 		<div class="col-12 col-lg-6">
 			{% if patients %}
 			<div class="card shadow-sm border-0 h-100">
-				<div
-					class="card-header d-flex justify-content-between align-items-center bg-white"
-				>
+				<div class="card-header bg-white">
 					<h3 class="mb-0 fw-bold">Patients</h3>
 				</div>
 
@@ -147,26 +199,17 @@ block content %}
 					<table class="table table-hover table-sm mb-0">
 						<thead class="table-light small">
 							<tr>
-								<th scope="col">Full Name</th>
-								<th scope="col">Gender</th>
-								<th scope="col">Status</th>
-								<th scope="col">Action</th>
+								<th>Name</th>
+								<th>Gender</th>
+								<th>Status</th>
+								<th>Action</th>
 							</tr>
 						</thead>
-
 						<tbody>
 							{% for p in patients[:5] %}
 							<tr class="align-middle">
 								<td>{{ p["first_name"] }} {{ p["last_name"] }}</td>
-
-								<td class="small">
-									{% if p["gender"] == "female" %}
-									<span class="">Female</span>
-									{% else %}
-									<span class="">Male</span>
-									{% endif %}
-								</td>
-
+								<td>{{ p["gender"]|capitalize }}</td>
 								<td>
 									{% if p["is_archived"] %}
 									<span class="badge bg-secondary">Archived</span>
@@ -178,9 +221,8 @@ block content %}
 									<a
 										href="{{ url_for('view_patient', patient_id=p['patient_id']) }}"
 										class="btn btn-sm btn-outline-primary"
+										>View</a
 									>
-										View
-									</a>
 								</td>
 							</tr>
 							{% endfor %}

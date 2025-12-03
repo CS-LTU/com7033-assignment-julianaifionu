@@ -1,0 +1,140 @@
+{% extends "base.html" %} {% block title %}Clinician Details{% endblock %} {%
+block content %}
+
+<div class="container mt-4 mb-5" style="max-width: 1000px">
+	<div
+		class="d-flex justify-content-between align-items-start mb-4 p-3 rounded border bg-light"
+	>
+		<div class="d-flex align-items-center">
+			<div class="me-3">
+				<i
+					class="bi bi-person-badge-fill text-primary"
+					style="font-size: 3rem"
+				></i>
+			</div>
+			<div>
+				<h2 class="fw-bold mb-1">{{ clinician.full_name }}</h2>
+				<span class="badge bg-primary"
+					>{{ clinician.role_name|capitalize }}</span
+				>
+				<span class="badge bg-info text-dark"
+					>Clinician ID: {{ clinician.clinician_id }}</span
+				>
+			</div>
+		</div>
+		<a
+			href="{{ url_for('admin_dashboard') }}"
+			class="btn btn-outline-secondary"
+		>
+			<i class="bi bi-arrow-left me-1"></i> Back
+		</a>
+		{% if role_name == "admin" and not clinician.is_archived %}
+		<div class="d-flex gap-2">
+			<a
+				href="{{ url_for('edit_clinician_get', clinician_id=clinician.clinician_id) }}"
+				class="btn btn-primary px-4"
+			>
+				<i class="bi bi-pencil-square me-1"></i> Edit
+			</a>
+			<form
+				action="{{ url_for('archive_clinician', clinician_id=clinician.clinician_id) }}"
+				method="POST"
+			>
+				<button type="submit" class="btn btn-danger px-4">
+					<i class="bi bi-archive me-1"></i> Archive
+				</button>
+			</form>
+		</div>
+		{% endif %}
+	</div>
+	<div class="card border-0 shadow-sm rounded-4 mb-4 p-4">
+		<h5 class="fw-semibold mb-3">Clinician Profile</h5>
+
+		<div class="row">
+			<div class="col-md-4 mb-3">
+				<strong>Username:</strong> <br />
+				{{ clinician.username }}
+			</div>
+			<div class="col-md-4 mb-3">
+				<strong>Specialization:</strong> <br />
+				{{ clinician.specialization | capitalize or "N/A" }}
+			</div>
+			<div class="col-md-4 mb-3">
+				<strong>License Number:</strong> <br />
+				{{ clinician.license_number or "N/A" }}
+			</div>
+
+			<div class="col-md-4 mb-3">
+				<strong>Status:</strong><br />
+				{% if clinician.is_active %}
+				<span class="badge bg-success">Active</span>
+				{% else %}
+				<span class="badge bg-secondary">Inactive</span>
+				{% endif %}
+			</div>
+
+			<div class="col-md-4 mb-3">
+				<strong>Date Added:</strong><br />
+				{{ clinician.clinician_created_at | humanize_date }}
+			</div>
+		</div>
+	</div>
+	<div class="card shadow-sm border-0 rounded-4 p-4">
+		<h5 class="fw-semibold mb-3">Assigned Patients</h5>
+		{% if patients %}
+		<div class="table-responsive">
+			<table class="table table-hover align-middle">
+				<thead class="table-light">
+					<tr>
+						<th>ID</th>
+						<th>Patient</th>
+						<th>Gender</th>
+						<th>DOB</th>
+						<th>Status</th>
+						<th>Added</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for p in patients %}
+					<tr style="cursor: pointer">
+						<td class="fw-bold">{{ p.patient_id }}</td>
+						<td>{{ p.first_name }} {{ p.last_name }}</td>
+						<td>
+							{% if p.gender == "female" %}
+							<span class="badge bg-danger">Female</span>
+							{% elif p.gender == "male" %}
+							<span class="badge bg-primary">Male</span>
+							{% else %}
+							<span class="badge bg-secondary">Other</span>
+							{% endif %}
+						</td>
+						<td>{{ p.date_of_birth }}</td>
+						<td>
+							{% if p.is_archived %}
+							<span class="badge bg-secondary">Archived</span>
+							{% else %}
+							<span class="badge bg-success">Active</span>
+							{% endif %}
+						</td>
+						<td>{{ p.created_at | humanize_date }}</td>
+						<td>
+							<a
+								href="{{ url_for('view_patient', patient_id=p.patient_id) }}"
+								class="btn btn-sm btn-outline-primary"
+							>
+								View →
+							</a>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		{% else %}
+		<p class="text-muted mt-3">No patients assigned to this clinician.</p>
+		{% endif %}
+	</div>
+</div>
+
+{% endblock %}
