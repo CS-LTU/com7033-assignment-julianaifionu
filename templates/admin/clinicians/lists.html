@@ -23,8 +23,9 @@ content %}
 					<tr>
 						<th>Clinician</th>
 						<th>Specialisation</th>
-						<th>Status</th>
+						<th>Activation Status</th>
 						<th>Created</th>
+						<th>Info</th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -67,6 +68,21 @@ content %}
 						<td class="small text-muted">
 							<i class="bi bi-calendar-event me-1"></i>
 							{{ c["user_created_at"] | humanize_date }}
+						</td>
+						<td>
+							{% if c["is_archived"] %}
+							<span class="badge bg-secondary">
+								<i class="bi bi-dash-circle me-1"></i> Archived
+							</span>
+							{% elif c["is_active"] and not c["is_archived"]%}
+							<span class="badge bg-success">
+								<i class="bi bi-check-circle me-1"></i> Active
+							</span>
+							{% else %}
+							<span class="badge bg-secondary">
+								<i class="bi bi-dash-circle me-1"></i> Inactive
+							</span>
+							{% endif %}
 						</td>
 						<td class="text-end">
 							<a

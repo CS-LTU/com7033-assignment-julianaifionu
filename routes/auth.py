@@ -14,6 +14,10 @@ from models.auth.activation import (
     get_valid_activation_user,
     mark_token_used,
 )
+from models.clinicians.clinician_model import (
+    get_user_clinician_id,
+    is_clinician_archived,
+)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -45,6 +49,12 @@ def login_post():
         if not user["is_active"]:
             flash("Please activate your account before continuing.", "info")
             return redirect(url_for("auth.activate_get"))
+        
+        clinician = get_user_clinician_id(user["id"])
+        
+        # Ensure clinician is not archived
+        if clinician and is_clinician_archived(clinician):
+            raise ValueError("This account is inactive. Contact admin.")
 
         full_user = get_user_by_id(user["id"])
         session["user_id"] = full_user["id"]
