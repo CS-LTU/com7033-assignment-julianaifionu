@@ -1,13 +1,13 @@
 from models.db_sqlite import get_db
 from models.auth.auth import hash_password
 from utils.time_formatter import utc_now
+from models.auth.auth import get_user_by_id
+from utils.current_user import get_current_user
 
 
-def create_user(username, role_name):
+def create_user(username, full_name, role_name):
     conn = get_db()
     cur = conn.cursor()
-
-    # Get user role ID
     cur.execute("SELECT id FROM roles WHERE name = ?", (role_name,))
     row = cur.fetchone()
 
@@ -19,10 +19,10 @@ def create_user(username, role_name):
 
     cur.execute(
         """
-        INSERT INTO users (username, password_hash, role_id, is_active, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (username, full_name, password_hash, role_id, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (username.strip(), None, role_id, 0, time),
+        (username, full_name, None, role_id, 0, time),
     )
 
     new_user_id = cur.lastrowid
@@ -47,6 +47,70 @@ def update_user_activation(user_id, new_password):
         WHERE id = ?
         """,
         (password_hash, 1, time, user_id),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_all_user_roles():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT name FROM roles")
+    rows = cur.fetchall()
+    conn.close()
+    return [row["name"] for row in rows] if rows else []
+
+
+def is_user_archived(user_id):
+    user = get_user_by_id(user_id)
+    if not user:
+        raise ValueError("User not found.")
+    return user["is_archived"]
+
+
+def update_user(user_id, data):
+    username = data.get("username")
+    full_name = data.get("full_name")
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        """
+						UPDATE users 
+						SET full_name = ?, username = ?
+						WHERE id = ?
+						""",
+        (full_name, username, user_id),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def archive_user_service(user_id):
+    user = get_user_by_id(user_id)
+    
+    if user['role_name'] == 'admin':
+        raise ValueError("Can not archive admin account.")
+    
+    archived = is_user_archived(user_id)
+
+    if archived:
+        raise ValueError("User is already archived.")
+    
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+			UPDATE users
+			SET is_archived = 1, archived_at = ?
+			WHERE id = ?
+			""",
+        (utc_now(), user_id),
     )
 
     conn.commit()

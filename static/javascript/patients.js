@@ -107,7 +107,7 @@ function fillReview() {
 	document.getElementById('review_medical').innerHTML = `
         <strong>Hypertension:</strong> ${hypertension.value || 'N/A'}<br>
         <strong>Heart Disease:</strong> ${heart_disease.value || 'N/A'}<br>
-        <strong>Stroke:</strong> ${stroke.value || 'N/A'}<br>
+        <strong>Had Stroke:</strong> ${stroke.value || 'N/A'}<br>
         <strong>BMI:</strong> ${bmi.value || 'N/A'}<br>
         <strong>Glucose Level:</strong> ${avg_glucose_level.value || 'N/A'}
     `;
@@ -126,7 +126,7 @@ function submitForm() {
 		'gender',
 		'ever_married',
 		'work_type',
-		'resident_type',
+		'residence_type',
 		'smoking_status',
 		'hypertension',
 		'heart_disease',

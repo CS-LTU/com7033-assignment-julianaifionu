@@ -1,5 +1,5 @@
 import sqlite3
-from utils.config import Config
+from config import Config
 
 
 def get_db():
@@ -11,6 +11,7 @@ def get_db():
 
 
 def init_sqlite_db():
+    """Initialize creation of sqlite tables needed"""
     conn = get_db()
     cur = conn.cursor()
 
@@ -32,8 +33,11 @@ def init_sqlite_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             role_id INTEGER NOT NULL,
             username TEXT NOT NULL UNIQUE,
+            full_name TEXT NOT NULL,
             password_hash TEXT,
             is_active BOOLEAN NOT NULL DEFAULT 0,
+            is_archived BOOLEAN NOT NULL DEFAULT 0,
+						archived_at TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT,
             FOREIGN KEY (role_id) REFERENCES roles(id)
@@ -46,43 +50,6 @@ def init_sqlite_db():
         """ 
             CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_unique ON users(username);
     		"""
-    )
-
-    # Clinicians table
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS clinicians (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL UNIQUE,
-            full_name TEXT NOT NULL,
-            specialization TEXT,
-            license_number TEXT NOT NULL UNIQUE,
-            is_archived BOOLEAN NOT NULL DEFAULT 0,
-						archived_at TEXT,
-            created_at TEXT NOT NULL,
-            updated_at TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        );
-        """
-    )
-
-    # Patients table
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS patients (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            clinician_id INTEGER NOT NULL,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            date_of_birth TEXT NOT NULL,
-            gender TEXT NOT NULL,
-            is_archived BOOLEAN NOT NULL DEFAULT 0,
-            archived_at TEXT,
-            created_at TEXT NOT NULL,
-            updated_at TEXT,
-            FOREIGN KEY (clinician_id) REFERENCES clinicians(id)
-        );
-        """
     )
 
     # Activation tokens table

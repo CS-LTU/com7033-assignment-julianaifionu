@@ -14,67 +14,36 @@ def get_user_admin_stats():
     cur.execute("SELECT COUNT(*) FROM users WHERE is_active = 0")
     inactive = cur.fetchone()[0]
 
+    cur.execute("SELECT COUNT(*) FROM users WHERE is_archived= 1")
+    archive = cur.fetchone()[0]
+
     conn.close()
-    return {"total": total, "active": active, "inactive": inactive}
+    return {"total": total, "active": active, "inactive": inactive, "archived": archive}
 
 
-def get_clinician_admin_stats():
+def get_all_users():
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT COUNT(*) FROM clinicians")
-    total = cur.fetchone()[0]
-
-    cur.execute("SELECT COUNT(*) FROM clinicians WHERE is_archived = 1")
-    archived = cur.fetchone()[0]
-
-    # Active means: user account activated AND clinician not archived
     cur.execute(
         """
-        SELECT COUNT(*) 
-        FROM clinicians c 
-        JOIN users u ON c.user_id = u.id
-        WHERE u.is_active = 1 AND c.is_archived = 0
-    """
-    )
-    active = cur.fetchone()[0]
-
-    conn.close()
-    return {
-        "total": total,
-        "active": active,
-        "archived": archived,
-    }
-
-
-def get_patient_admin_stats():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("SELECT COUNT(*) FROM patients")
-    total = cur.fetchone()[0]
-
-    cur.execute("SELECT COUNT(*) FROM patients WHERE is_archived = 1")
-    archived = cur.fetchone()[0]
-
-    cur.execute("SELECT COUNT(*) FROM patients WHERE is_archived = 0")
-    active = cur.fetchone()[0]
-
-    # New patients today
-    cur.execute(
-        """
-				SELECT COUNT(*)
-				FROM patients
-				WHERE DATE(created_at) = DATE('now', 'localtime')
+				SELECT 
+						users.id AS user_id,
+						users.username,
+						users.full_name,
+						users.is_active,
+						users.is_archived,
+						users.created_at AS user_created_at,
+						roles.name AS role_name
+				FROM users
+				JOIN roles ON users.role_id = roles.id
+				ORDER BY users.created_at DESC
 				"""
     )
-    new = cur.fetchone()[0]
+
+    rows = cur.fetchall()
+    print('users', rows)
+    users = rows if rows else []
 
     conn.close()
-
-    return {
-        "total": total,
-        "active": active,
-        "archived": archived,
-        "new": new,
-    }
+    return users
