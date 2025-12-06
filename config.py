@@ -10,7 +10,9 @@ class Config:
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
     BASE_DIR = os.getcwd()
     DB_PATH = os.path.join(BASE_DIR, "stroke_tracker.db")
+    DATASET_PATH = os.path.join(BASE_DIR, "dataset")
     USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
+    FULLNAME_PATTERN = re.compile(r"^[A-Za-z]+(?:[ '-][A-Za-z]+)+$")
     LICENSE_NUMBER_PATTERN = re.compile(r"^[A-Z]{2,3}\d{4,6}$")
     PASSWORD_PATTERN = re.compile(
         r"""
@@ -27,5 +29,4 @@ class Config:
     MONGO_URI = os.environ.get("MONGO_URI")
     MONGO_DB = "stroke_tracker_db"
     MONGO_LOGS_COL = "logs"
-    MONGO_MEDICAL_HISTORY_COL = "patient_medical_history"
-    MONGO_LIFESTYLE_COL = "patient_lifestyle"
+    MONGO_PATIENTS_COL = "patients"

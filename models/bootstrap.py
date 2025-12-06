@@ -1,12 +1,13 @@
 import sqlite3
 from models.db_sqlite import init_sqlite_db, get_db
 from models.auth.auth import hash_password
-from utils.config import Config
+from config import Config
 from utils.services_logging import log_action
 from utils.time_formatter import utc_now
+from models.patients.import_stroke_data import seed_stroke_dataset
 
 
-def initialize():
+def bootstrap_once():
     """
     Creates database tables, seeds the roles,
     and creates the default admin user if none exists.
@@ -14,7 +15,6 @@ def initialize():
 
     try:
         init_sqlite_db()
-
         conn = get_db()
         cur = conn.cursor()
 
@@ -53,7 +53,7 @@ def initialize():
 
             if not Config.PASSWORD_PATTERN.fullmatch(admin_password):
                 raise ValueError(
-                    "Password must be 8–64 characters long and include at least one uppercase letter, "
+                    "Password must be 8-64 characters long and include at least one uppercase letter, "
                     "one lowercase letter, one digit, and one special character."
                 )
 
@@ -66,14 +66,15 @@ def initialize():
             # Insert admin user
             cur.execute(
                 """
-                INSERT INTO users (username, password_hash, role_id, is_active, created_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO users (username, full_name, password_hash, role_id, is_active, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     admin_username.strip(),
+                    "System Admin",
                     password_hash,
                     role_id,
-                    1,  # admin is auto-activated
+                    1,  # 1 means admin is auto-activated
                     utc_now(),
                 ),
             )
@@ -82,23 +83,28 @@ def initialize():
             conn.commit()
             conn.close()
 
-            # Log the action
+            log_action(
+                action="REGISTER_ADMIN",
+                details={
+                    "action_by": "system_initializer",
+                    "action_at": utc_now(),
+                },
+            )
+
+            # Seed patient dataset in MongoDB
             try:
+                seed_stroke_dataset(admin_id)
                 log_action(
-                    action="REGISTER_ADMIN",
-                    user_id=admin_id,
-                    details={"username": admin_username},
+                    action="PATIENT DATA SEEDED",
+                    details={
+                        "action_by": "system_initializer",
+                        "action_at": utc_now(),
+                    },
                 )
             except Exception:
-                print("Warning: Logging failed but admin user was still created.")
-
-            print(f"Created default admin user: {admin_username}")
+                print("Fail to seed patient data in mongodb")
 
     except ValueError as e:
-        print(f"[INIT ERROR] {e}")
-
-    except sqlite3.Error as e:
-        print(f"[SQLITE ERROR] {e}")
-
-    except Exception as e:
-        print(f"Unexpected error during initialization: {e}")
+        print(f"{e}")
+    except (Exception, sqlite3.Error):
+        print(f"Unexpected error during initialization")
