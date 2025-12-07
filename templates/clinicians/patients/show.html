@@ -4,18 +4,7 @@ block content %}
 	<div
 		class="d-flex justify-content-between align-items-start mb-4 p-3 rounded border bg-light"
 	>
-		<div>
-			<h2 class="fw-bold mb-1 d-flex align-items-center">
-				<i class="bi bi-person-circle me-3 text-primary"></i>
-				{{ patient.first_name }} {{ patient.last_name }}
-			</h2>
-
-			{% if patient.is_archived %}
-			<span class="badge bg-danger">Archived</span> {% else %}
-			<span class="badge bg-success">Active</span> {% endif %}
-		</div>
-
-		{% if role_name == "clinician" and not patient.is_archived %}
+		{% if role_name == "clinician" %}
 		<div class="d-flex gap-2">
 			<a
 				href="{{ url_for('clinician.edit_patient_get', patient_id=patient.id) }}"
@@ -25,90 +14,41 @@ block content %}
 			</a>
 
 			<form
-				action="{{ url_for('clinician.archive_patient', patient_id=patient.id) }}"
+				action="{{ url_for('clinician.delete_patient_post', patient_id=patient.id) }}"
 				method="POST"
+				onsubmit="return confirm('Are you sure you want to delete this patient? This action cannot be undone.')"
 			>
 				<button type="submit" class="btn btn-danger px-4">
-					<i class="bi bi-archive me-1"></i> Archive
+					<i class="bi bi-archive me-1"></i> Delete
 				</button>
 			</form>
 		</div>
 		{% endif %}
 	</div>
-	<div class="view_patient card shadow-sm border-0 rounded-4 p-4">
-		<!-- DEMOGRAPHICS -->
-		<h5 class="fw-semibold mb-3">Demographic</h5>
-		<div class="row mb-4">
-			<div class="col-md-6 mb-2">
-				<strong>Name:</strong> {{ patient.first_name }} {{ patient.last_name }}
-			</div>
-			<div class="col-md-6 mb-2">
-				<strong>Gender:</strong> {{ patient.gender|capitalize }}
-			</div>
-			<div class="col-md-6 mb-2">
-				<strong>Date of Birth:</strong> {{ patient.date_of_birth }}
-			</div>
-			<div class="col-md-6 mb-2">
-				<strong>Created:</strong> {{ patient.created_at | humanize_date }}
-			</div>
-		</div>
-		<hr />
-		<!-- LIFESTYLE -->
-		<h5 class="fw-semibold mb-3">Lifestyle</h5>
-		{% if lifestyle %}
-		<div class="row mb-4">
-			<div class="col-md-6 mb-2">
-				<strong>Ever Married:</strong> {{ lifestyle.ever_married|capitalize or
-				"N/A" }}
-			</div>
-			<div class="col-md-6 mb-2">
-				<strong>Work Type:</strong> {{ lifestyle.work_type|capitalize or "N/A"
-				}}
-			</div>
-			<div class="col-md-6 mb-2">
-				<strong>Resident Type:</strong> {{ lifestyle.resident_type|capitalize or
-				"N/A" }}
-			</div>
-			<div class="col-md-6 mb-2">
-				<strong>Smoking Status:</strong> {{ lifestyle.smoking_status|capitalize
-				or "N/A" }}
-			</div>
-		</div>
-		{% else %}
-		<p class="text-muted">No lifestyle data available.</p>
-		{% endif %}
-
-		<hr />
-
-		<!-- MEDICAL -->
-		<h5 class="fw-semibold mb-3">Medical History</h5>
-
-		{% if medical %}
-		<div class="row mb-4">
-			<div class="col-md-4 mb-2">
-				<strong>Hypertension:</strong> {{ "Yes" if medical.hypertension==1 else
-				"No" }}
-			</div>
-			<div class="col-md-4 mb-2">
-				<strong>Heart Disease:</strong> {{ "Yes" if medical.heart_disease==1
-				else "No" }}
-			</div>
-			<div class="col-md-4 mb-2">
-				<strong>Stroke:</strong> {{ "Yes" if medical.stroke==1 else "No" }}
-			</div>
-			<div class="col-md-6 mb-2"><strong>BMI:</strong> {{ medical.bmi }}</div>
-			<div class="col-md-6 mb-2">
-				<strong>Avg Glucose Level:</strong> {{ medical.avg_glucose_level }}
-			</div>
-		</div>
-		{% else %}
-		<p class="text-muted">No medical history recorded.</p>
-		{% endif %}
-	</div>
+	<h5 class="fw-semibold mb-3">Patient Record</h5>
+	<table class="table table-striped table-sm">
+		<tbody>
+			{% for key, value in patient.items() %} {% if key not in ['_id', 'id',
+			'created_at', 'updated_at'] %}
+			<tr>
+				<th class="text-capitalize">{{ key.replace('_',' ') }}</th>
+				<td>
+					{% if key == 'created_by' %} {{ patient_creator }} {% elif value is
+					number %} {% if value == 0 %} No {% elif value == 1 %} Yes {% else %}
+					{{ value }} {% endif %} {% elif value is string %} {{
+					value.replace('_', ' ') | title }} {% else %} {{ value }} {% endif %}
+				</td>
+			</tr>
+			{% endif %} {% endfor %}
+		</tbody>
+	</table>
 
 	<div class="mt-4">
-		<a href="{{ url_for('clinician.dashboard') }}" class="btn btn-outline-secondary">
-			<i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+		<a
+			href="{{ url_for('clinician.view_patients', patient_id=patient.id) }}"
+			class="btn btn-outline-secondary"
+		>
+			<i class="bi bi-arrow-left me-1"></i> Back
 		</a>
 	</div>
 </div>

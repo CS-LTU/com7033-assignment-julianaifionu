@@ -4,9 +4,8 @@ block content %}
 	<div class="col-md-6">
 		<div class="card shadow-sm">
 			<div class="card-body">
-				<h4 class="text-center mb-3">Create Clinician</h4>
-
-				<form method="POST" action="{{ url_for('admin.create_clinician_post') }}">
+				<h4 class="text-center mb-3">Create User</h4>
+				<form method="POST" action="{{ url_for('admin.create_user_post') }}">
 					<div class="row">
 						<div class="col-md-6 mb-3">
 							<label for="username" class="form-label"
@@ -33,32 +32,21 @@ block content %}
 					</div>
 
 					<div class="mb-3">
-						<label for="specialization" class="form-label"
-							>Specialization <span class="text-danger">*</span></label
+						<label for="role_name" class="form-label"
+							>Role Name <span class="text-danger">*</span></label
 						>
 						<select
 							class="form-select"
-							id="specialization"
-							name="specialization"
+							id="role_name"
+							name="role_name"
 						>
 							<option value="">-- choose --</option>
-							<option value="nurse">Nurse</option>
-							<option value="doctor">Doctor</option>
+							<option value="clinician">Clinician</option>
+							<option value="auditor">Auditor</option>
 						</select>
 					</div>
-
-					<div class="mb-3">
-						<label for="license_number" class="form-label"
-							>License Number <span class="text-danger">*</span></label
-						>
-						<input
-							id="license_number"
-							name="license_number"
-							class="form-control"
-						/>
-					</div>
 					<button type="submit" class="btn btn-primary w-100">
-						Create Clinician
+						Create User
 					</button>
 				</form>
 			</div>

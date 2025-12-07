@@ -17,20 +17,30 @@
 				account.
 			</p>
 		</div>
-		<div
-			class="alert alert-info d-flex justify-content-between align-items-center"
-		>
-			<div>
+		<div class="alert alert-info p-3 d-flex align-items-start">
+			<div class="flex-grow-1 me-3" style="min-width: 0">
 				<strong>Activation Link:</strong><br />
-				<span id="activationLink">{{ activation_link }}</span>
+				<span
+					id="activationLink"
+					class="text-break d-block"
+					style="word-break: break-word"
+				>
+					{{ activation_link }}
+				</span>
 			</div>
-			<button
-				class="btn btn-sm btn-outline-primary d-flex align-items-center ms-3"
-				onclick="copyActivationLink()"
-			>
-				<i id="copyIcon" class="bi bi-clipboard fs-5"></i>
-				<i id="checkIcon" class="bi bi-check2 fs-5 text-success d-none"></i>
-			</button>
+			<div class="flex-shrink-0">
+				<button
+					class="btn btn-sm btn-outline-primary d-flex align-items-center"
+					onclick="copyActivationLink()"
+					title="Copy activation link"
+				>
+					<i id="copyIcon" class="bi bi-clipboard fs-5"></i>
+					<i
+						id="checkIcon"
+						class="bi bi-check2 fs-5 text-success d-none ms-1"
+					></i>
+				</button>
+			</div>
 		</div>
 		<div class="d-flex justify-content-center mt-4">
 			<a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary">
@@ -41,5 +51,4 @@
 
 	{% endif %}
 </div>
-
 {% endblock %}

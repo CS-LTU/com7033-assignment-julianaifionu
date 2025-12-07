@@ -7,7 +7,7 @@
 		>
 			<i class="bi bi-speedometer2 me-2"></i> Dashboard
 		</a>
-		{% else %}
+		{% elif role_name == "clinician" %}
 		<a
 			class="navbar-brand fw-bold d-flex align-items-center"
 			href="{{ url_for('clinician.dashboard') }}"
@@ -27,22 +27,9 @@
 			<ul class="navbar-nav ms-auto align-items-center">
 				{% if username and role_name %}
 				<li class="nav-item">
-					<span class="nav-link text-white">
-						<i class="bi bi-person-circle me-1 fs-4"></i> {{ username }}
-					</span>
-				</li>
-				<li class="nav-item">
-					<span class="nav-link">
-						{% if role_name == "admin" %}
-						<span class="badge bg-warning text-dark"
-							><i class="bi bi-shield-lock me-1"></i> Admin</span
-						>
-						{% else %}
-						<span class="badge bg-info text-dark"
-							><i class="bi bi-heart-pulse me-1"></i> Clinician</span
-						>
-						{% endif %}
-					</span>
+					<span class="badge bg-warning text-dark"
+						><i class="bi bi-shield-lock me-1"></i> {{role_name | capitalize}}</span
+					>
 				</li>
 				{% if role_name == "clinician" %}
 				<li class="nav-item">
@@ -65,25 +52,17 @@
 				<li class="nav-item">
 					<a
 						class="nav-link text-white d-flex align-items-center"
-						href="{{ url_for('admin.create_clinician_get') }}"
+						href="{{ url_for('admin.create_user_get') }}"
 					>
-						<i class="bi bi-person-badge me-1"></i> New Clinician
+						<i class="bi bi-person-badge me-1"></i> New User
 					</a>
 				</li>
 				<li class="nav-item">
 					<a
 						class="nav-link text-white d-flex align-items-center"
-						href="{{ url_for('admin.view_clinicians') }}"
+						href="{{ url_for('admin.view_users') }}"
 					>
-						<i class="bi bi-person-badge me-1"></i> Clinicians
-					</a>
-				</li>
-				<li class="nav-item">
-					<a
-						class="nav-link text-white d-flex align-items-center"
-						href="{{ url_for('admin.view_patients') }}"
-					>
-						<i class="bi bi-person-badge me-1"></i> Patients
+						<i class="bi bi-person-badge me-1"></i> Users
 					</a>
 				</li>
 				{% endif %}
