@@ -9,7 +9,7 @@ _mdb = _client[Config.MONGO_DB]
 patients_collection = _mdb[Config.MONGO_PATIENTS_COL]
 
 
-# helper functions
+# helper function
 def to_object_id(id_value):
     """Ensures patient id is of ObjectId type"""
     if isinstance(id_value, ObjectId):
@@ -17,12 +17,12 @@ def to_object_id(id_value):
     return ObjectId(id_value)
 
 
-def dob_to_age(dob_str, date_format="%d/%m/%Y"):
+def dob_to_age(dob_str, date_format="%Y-%m-%d"):
     """
     Converts a date of birth string to age in years.
     Args:
-        dob_str (str): Date of birth from form, e.g., "25/08/1990"
-        date_format (str): Format of the input string (default: "%d/%m/%Y")
+        dob_str (str): Date of birth from form, e.g., "1990-08-25"
+        date_format (str): Format of the input string (default: "%Y-%m-%d")
     Returns:
         int: Age in years
     """
@@ -43,7 +43,6 @@ def dob_to_age(dob_str, date_format="%d/%m/%Y"):
 
 
 def create_patient(clinician_id, data):
-    print("data", data)
     age = dob_to_age(data["date_of_birth"])
     patient = {
         "_id": ObjectId(),
