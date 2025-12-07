@@ -99,7 +99,7 @@ function fillReview() {
 	document.getElementById('review_lifestyle').innerHTML = `
         <strong>Married:</strong> ${ever_married.value || 'N/A'}<br>
         <strong>Work Type:</strong> ${work_type.value || 'N/A'}<br>
-        <strong>Resident:</strong> ${resident_type.value || 'N/A'}<br>
+        <strong>Resident:</strong> ${residence_type.value || 'N/A'}<br>
         <strong>Smoking:</strong> ${smoking_status.value || 'N/A'}
     `;
 
@@ -140,6 +140,7 @@ function submitForm() {
 		input.type = 'hidden';
 		input.name = id;
 		input.value = document.getElementById(id).value;
+		console.log(input.value);
 		form.appendChild(input);
 	});
 
