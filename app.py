@@ -1,7 +1,7 @@
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for
-from utils.config import Config
-from models.initialize import initialize
+from flask import Flask, render_template, redirect, url_for, request
+from config import Config
+from models.bootstrap import bootstrap_once
 from utils.decorators import login_required
 from utils.current_user import get_current_user
 from routes import admin_bp, auth_bp, clinician_bp
@@ -14,20 +14,31 @@ app.register_blueprint(admin_bp, url_prefix="/admin")
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(clinician_bp, url_prefix="/clinicians")
 
-initialize()
+bootstrap_once()
+
+# Error 404 handler
+@app.errorhandler(404)
+def page_not_found(error):
+    app.logger.warning(f"404 Not Found: {error}, Path: {request.path}")
+    return render_template("errors/404.html"), 404
 
 
-# Custom filter to format ISO UTC strings to human-readable dates
+# Error 500 handler
+@app.errorhandler(500)
+def internal_server_error(error):
+    app.logger.error(f"500 Internal Server Error: {error}, Path: {request.path}")
+    return render_template("errors/500.html"), 500
+
+
 @app.template_filter("humanize_date")
 def humanize_date(iso_string: str) -> str:
     """
-    Converts ISO 8601 string to '30 Nov 2025, 10:31 PM' format.
+    Converts ISO 8601 string to human-readable dates format.
     """
     dt = datetime.fromisoformat(iso_string)
     return dt.strftime("%d %b %Y, %I:%M %p")
 
 
-# Context processor to inject user info into templates
 @app.context_processor
 def inject_user():
     """
