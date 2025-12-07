@@ -4,10 +4,12 @@ from config import Config
 from models.bootstrap import bootstrap_once
 from utils.decorators import login_required
 from utils.current_user import get_current_user
+from flask_wtf import CSRFProtect
 from routes import admin_bp, auth_bp, clinician_bp
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
+csrf = CSRFProtect(app)
 
 # Register Blueprints
 app.register_blueprint(admin_bp, url_prefix="/admin")
@@ -15,6 +17,7 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(clinician_bp, url_prefix="/clinicians")
 
 bootstrap_once()
+
 
 # Error 404 handler
 @app.errorhandler(404)

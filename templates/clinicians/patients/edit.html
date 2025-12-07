@@ -5,6 +5,7 @@
 	<div class="card shadow-sm p-4">
 		<h3 class="mb-3 text-center">Edit Patient</h3>
 		<form action="{{ url_for('clinician.edit_patient_post', patient_id=patient.id) }}" method="POST">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 			<h5 class="text-secondary mb-3">Demographics</h5>
 			<div class="row">
 				<div class="col-md-6 mb-3">

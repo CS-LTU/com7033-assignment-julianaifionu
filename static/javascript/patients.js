@@ -119,6 +119,13 @@ function submitForm() {
 	form.method = 'POST';
 	form.action = CREATE_PATIENT_URL;
 
+	// CSRF token input
+	csfr_input = document.createElement('input');
+	csfr_input.type = 'hidden';
+	csfr_input.name = 'csrf_token';
+	csfr_input.value = CSRF_TOKEN;
+	form.appendChild(csfr_input);
+
 	const fields = [
 		'first_name',
 		'last_name',
@@ -140,7 +147,6 @@ function submitForm() {
 		input.type = 'hidden';
 		input.name = id;
 		input.value = document.getElementById(id).value;
-		console.log(input.value);
 		form.appendChild(input);
 	});
 

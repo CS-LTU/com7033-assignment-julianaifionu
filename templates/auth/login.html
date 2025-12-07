@@ -6,9 +6,15 @@ content %}
 			<div class="card-body">
 				<h4 class="text-center mb-3">Sign In</h4>
 				<form method="POST" action="{{ url_for('auth.login_post') }}">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 					<div class="mb-3">
 						<label for="username" class="form-label">Username</label>
-						<input id="username" type="text" name="username" class="form-control" />
+						<input
+							id="username"
+							type="text"
+							name="username"
+							class="form-control"
+						/>
 					</div>
 					<div class="mb-3">
 						<label for="password" class="form-label">Password</label>

@@ -6,6 +6,7 @@ block content %}
 			<div class="card-body">
 				<h4 class="text-center mb-3">Create User</h4>
 				<form method="POST" action="{{ url_for('admin.create_user_post') }}">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 					<div class="row">
 						<div class="col-md-6 mb-3">
 							<label for="username" class="form-label"
@@ -35,11 +36,7 @@ block content %}
 						<label for="role_name" class="form-label"
 							>Role Name <span class="text-danger">*</span></label
 						>
-						<select
-							class="form-select"
-							id="role_name"
-							name="role_name"
-						>
+						<select class="form-select" id="role_name" name="role_name">
 							<option value="">-- choose --</option>
 							<option value="clinician">Clinician</option>
 							<option value="auditor">Auditor</option>

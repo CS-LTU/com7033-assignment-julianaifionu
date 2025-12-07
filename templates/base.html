@@ -28,7 +28,9 @@
 
 		<script src="{{ url_for('static', filename='javascript/admin.js') }}"></script>
 		<script>
-			const CREATE_PATIENT_URL = "{{ url_for('clinician.create_patient_post') }}";
+			const CREATE_PATIENT_URL =
+				"{{ url_for('clinician.create_patient_post') }}";
+			const CSRF_TOKEN = '{{ csrf_token() }}';
 		</script>
 		<script src="{{ url_for('static', filename='javascript/patients.js') }}"></script>
 	</body>

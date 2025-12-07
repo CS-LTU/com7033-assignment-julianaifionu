@@ -10,6 +10,7 @@ block content %}
 					method="POST"
 					action="{{ url_for('auth.activate_account_post', token=token) }}"
 				>
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 					<div class="mb-3">
 						<label for="new_password" class="form-label">New Password</label>
 						<input

@@ -28,7 +28,8 @@
 				{% if username and role_name %}
 				<li class="nav-item">
 					<span class="badge bg-warning text-dark"
-						><i class="bi bi-shield-lock me-1"></i> {{role_name | capitalize}}</span
+						><i class="bi bi-shield-lock me-1"></i> {{role_name |
+						capitalize}}</span
 					>
 				</li>
 				{% if role_name == "clinician" %}
@@ -72,6 +73,7 @@
 						method="POST"
 						class="d-inline"
 					>
+						<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 						<button
 							type="submit"
 							class="btn btn-sm btn-outline-light ms-2 d-flex align-items-center"
