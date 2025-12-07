@@ -254,3 +254,25 @@ def update_patient(patient_id, data, clinician_id):
     )
 
     return result.modified_count == 1
+
+
+def search_patient(search_query=None):
+    if search_query:
+        # Search patients by first_name or last_name (case-insensitive)
+        patients = patients_collection.find(
+            {
+                "$or": [
+                    {"first_name": {"$regex": search_query, "$options": "i"}},
+                    {"last_name": {"$regex": search_query, "$options": "i"}},
+                ]
+            }
+        )
+        formatted = []
+        for p in patients:
+            p["id"] = str(p["_id"])
+            del p["_id"]
+            formatted.append(p)
+        return formatted
+    else:
+        patients = get_all_patients()
+    return patients

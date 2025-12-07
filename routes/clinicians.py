@@ -12,6 +12,7 @@ from models.patients.mongo_models import (
     delete_patient,
     update_patient,
     get_patient_by_id,
+    search_patient,
 )
 
 clinician_bp = Blueprint("clinician", __name__)
@@ -146,7 +147,8 @@ def view_patient(patient_id):
 @login_required
 @clinician_required
 def view_patients():
-    patients = get_all_patients()
+    search_query = request.args.get("q", "").strip()
+    patients = search_patient(search_query)
     return render_template(
         "clinicians/patients/list.html",
         patients=patients,

@@ -19,7 +19,7 @@ from utils.decorators import admin_required, login_required
 from utils.services_logging import log_action
 from utils.validations import validate_registration_form
 from models.auth.activation import generate_activation_token
-from models.admin.admin_models import get_user_admin_stats, get_all_users
+from models.admin.admin_models import get_user_admin_stats, get_all_users, search_user
 from models.patients.mongo_models import get_all_patients, get_patient_admin_stats
 from models.auth.auth import get_user_by_id
 
@@ -98,11 +98,11 @@ def activation_link():
 @login_required
 @admin_required
 def view_users():
-    users = get_all_users()
+    search_query = request.args.get("q", "").strip()
+    users = search_user(search_query)
 
     return render_template(
-        "admin/users/list.html",
-        users=users,
+        "admin/users/list.html", users=users, search_query=search_query
     )
 
 
@@ -170,6 +170,7 @@ def edit_user_post(user_id):
     except (sqlite3.Error, Exception):
         flash(f"An error occured", "danger")
         return redirect(url_for("admin.edit_user_get", user_id=user_id))
+
 
 @admin_bp.route("/users/<int:user_id>/archive", methods=["POST"])
 @login_required

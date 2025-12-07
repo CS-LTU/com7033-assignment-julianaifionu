@@ -2,7 +2,6 @@ from models.db_sqlite import get_db
 from models.auth.auth import hash_password
 from utils.time_formatter import utc_now
 from models.auth.auth import get_user_by_id
-from utils.current_user import get_current_user
 
 
 def create_user(username, full_name, role_name):
@@ -91,15 +90,14 @@ def update_user(user_id, data):
 
 def archive_user_service(user_id):
     user = get_user_by_id(user_id)
-    
-    if user['role_name'] == 'admin':
+
+    if user["role_name"] == "admin":
         raise ValueError("Can not archive admin account.")
-    
+
     archived = is_user_archived(user_id)
 
     if archived:
         raise ValueError("User is already archived.")
-    
 
     conn = get_db()
     cur = conn.cursor()

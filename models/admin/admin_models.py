@@ -42,8 +42,40 @@ def get_all_users():
     )
 
     rows = cur.fetchall()
-    print('users', rows)
     users = rows if rows else []
 
     conn.close()
+    return users
+
+
+def search_user(search_query=None):
+    if search_query:
+        conn = get_db()
+        cur = conn.cursor()
+
+        search_pattern = f"%{search_query}%"
+        cur.execute(
+            """
+            SELECT 
+								users.id AS user_id,
+								users.username,
+								users.full_name,
+								users.is_active,
+								users.is_archived,
+								users.created_at AS user_created_at,
+								roles.name AS role_name
+						FROM users
+						JOIN roles ON users.role_id = roles.id
+            WHERE full_name LIKE ?
+            OR username LIKE ?
+						ORDER BY users.created_at DESC
+            """,
+            (search_pattern, search_pattern),
+        )
+        rows = cur.fetchall()
+        users = rows if rows else []
+        conn.close()
+    else:
+        users = get_all_users()
+
     return users
