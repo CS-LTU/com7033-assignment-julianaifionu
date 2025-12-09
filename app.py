@@ -1,5 +1,6 @@
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, session
+from datetime import timedelta
 from config import Config
 from models.bootstrap import bootstrap_once
 from utils.decorators import login_required
@@ -8,7 +9,18 @@ from flask_wtf import CSRFProtect
 from routes import admin_bp, auth_bp, clinician_bp
 
 app = Flask(__name__)
-app.secret_key = Config.SECRET_KEY
+# app.secret_key = Config.SECRET_KEY
+# Secret key for signing/encrypting session cookie
+app.config["SECRET_KEY"] = Config.SECRET_KEY
+
+# Make session permanent and set expiration
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=15)
+
+# Secure cookie options
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# CSRF protection
 csrf = CSRFProtect(app)
 
 # Register Blueprints
@@ -17,6 +29,11 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(clinician_bp, url_prefix="/clinicians")
 
 bootstrap_once()
+
+
+@app.before_request
+def refresh_session():
+    session.permanent = True
 
 
 # Error 404 handler
