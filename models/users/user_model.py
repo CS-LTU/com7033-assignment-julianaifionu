@@ -1,12 +1,13 @@
 from models.db_sqlite import get_db
-from models.auth.auth import hash_password
 from utils.time_formatter import utc_now
 from models.auth.auth import get_user_by_id
 
 
-def create_user(username, full_name, role_name):
-    conn = get_db()
+def create_user(username, full_name, role_name, db=None):
+    # Create a new user with the given username, full name, and role; sets account as inactive initially
+    conn = db or get_db()
     cur = conn.cursor()
+
     cur.execute("SELECT id FROM roles WHERE name = ?", (role_name,))
     row = cur.fetchone()
 
@@ -27,32 +28,15 @@ def create_user(username, full_name, role_name):
     new_user_id = cur.lastrowid
 
     conn.commit()
-    conn.close()
+
+    if db is None:
+        conn.close()
 
     return new_user_id
 
 
-def update_user_activation(user_id, new_password):
-    conn = get_db()
-    cur = conn.cursor()
-
-    password_hash = hash_password(new_password)
-    time = utc_now()
-
-    cur.execute(
-        """
-        UPDATE users
-        SET password_hash = ?, is_active = ?, updated_at = ?
-        WHERE id = ?
-        """,
-        (password_hash, 1, time, user_id),
-    )
-
-    conn.commit()
-    conn.close()
-
-
 def get_all_user_roles():
+    # Retrieve a list of all role names from the roles table
     conn = get_db()
     cur = conn.cursor()
 
@@ -63,6 +47,7 @@ def get_all_user_roles():
 
 
 def is_user_archived(user_id):
+    # Check if a specific user is archived; raises an error if the user does not exist
     user = get_user_by_id(user_id)
     if not user:
         raise ValueError("User not found.")
@@ -70,6 +55,7 @@ def is_user_archived(user_id):
 
 
 def update_user(user_id, data):
+    # Update a user's full name and username based on the provided user ID
     username = data.get("username")
     full_name = data.get("full_name")
 
@@ -89,6 +75,10 @@ def update_user(user_id, data):
 
 
 def archive_user_service(user_id):
+    """
+    Archive a user by setting is_archived to 1 and recording the archive timestamp;
+    prevents archiving admin accounts or users already archived
+    """
     user = get_user_by_id(user_id)
 
     if user["role_name"] == "admin":

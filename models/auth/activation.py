@@ -1,13 +1,13 @@
 import secrets
 import hashlib
 from datetime import datetime, timedelta, timezone
-
+from models.auth.auth import hash_password
 from models.db_sqlite import get_db
 from utils.time_formatter import utc_now
 
 
 def hash_token(raw_token: str) -> str:
-    """Hash the activation token (so raw token is never stored in DB)."""
+    # Hash the activation token (so raw token is never stored in DB).
     return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
 
 
@@ -119,5 +119,27 @@ def mark_token_used(raw_token: str):
 
     conn.commit()
     conn.close()
-    
+
     return used_at
+
+
+def update_user_activation(user_id, new_password, db=None):
+    # Update user's password, activate the account, and set updated timestamp
+    conn = db or get_db()
+    cur = conn.cursor()
+
+    password_hash = hash_password(new_password)
+    time = utc_now()
+
+    cur.execute(
+        """
+        UPDATE users
+        SET password_hash = ?, is_active = ?, updated_at = ?
+        WHERE id = ?
+        """,
+        (password_hash, 1, time, user_id),
+    )
+
+    conn.commit()
+    if db is None:
+        conn.close()

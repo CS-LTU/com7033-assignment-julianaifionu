@@ -2,14 +2,19 @@ import sqlite3
 from utils.time_formatter import utc_now
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from models.auth.auth import authenticate_user, get_user_by_id
-from models.users.user_model import update_user_activation, is_user_archived
+from models.users.user_model import is_user_archived
 from utils.services_logging import log_action
-from utils.validations import validate_login_form, validate_activation_passwords
-from models.auth.activation import get_valid_activation_user, mark_token_used
+from models.auth.validations import validate_login_form, validate_activation_passwords
+from models.auth.activation import (
+    get_valid_activation_user,
+    mark_token_used,
+    update_user_activation,
+)
 
 auth_bp = Blueprint("auth", __name__)
 
 
+# Auth routes
 @auth_bp.route("/login", methods=["GET"])
 def login_get():
     if session.get("user_id"):
@@ -47,7 +52,6 @@ def login_post():
         session["role_name"] = full_user["role_name"]
         session["role_id"] = full_user["role_id"]
 
-        # Log the login action
         log_action(
             "USER LOGIN",
             {
@@ -90,14 +94,13 @@ def activate_account_post(token):
         if not user_id:
             flash("Invalid or expired activation link.", "danger")
             return redirect(url_for("auth.login_get"))
-        
+
         validate_activation_passwords(new_password, confirm_password)
         update_user_activation(user_id, new_password)
 
         # Mark token as used
         used_at_time = mark_token_used(token)
 
-        # Log action
         log_action(
             "ACCOUNT ACTIVATED",
             {

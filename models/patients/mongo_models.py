@@ -11,7 +11,7 @@ patients_collection = _mdb[Config.MONGO_PATIENTS_COL]
 
 # helper function
 def to_object_id(id_value):
-    """Ensures patient id is of ObjectId type"""
+    # Ensures patient id is of ObjectId type
     if isinstance(id_value, ObjectId):
         return id_value
     return ObjectId(id_value)
@@ -42,7 +42,10 @@ def dob_to_age(dob_str, date_format="%Y-%m-%d"):
     return age
 
 
-def create_patient(clinician_id, data):
+def create_patient(clinician_id, data, collection=None):
+    # Create a new patient record with provided data and insert it into the patients collection
+    collection = collection or patients_collection
+
     age = dob_to_age(data["date_of_birth"])
     patient = {
         "_id": ObjectId(),
@@ -63,11 +66,12 @@ def create_patient(clinician_id, data):
         "created_at": utc_now(),
         "updated_at": None,
     }
-    patients_collection.insert_one(patient)
+    collection.insert_one(patient)
     return str(patient["_id"])
 
 
 def get_patient_admin_stats():
+    # Return the total number of patients in the collection
     total = patients_collection.count_documents({})
     return {"total": total if total else 0}
 
@@ -78,6 +82,7 @@ def get_patient_clinician_stats():
     - total patients
     - stroke vs non-stroke
     - gender distribution
+    - New patients today
     - average age & BMI
     - work type distribution
     """
@@ -225,12 +230,7 @@ def get_patient_by_id(patient_id):
 
 
 def update_patient(patient_id, data, clinician_id):
-    """
-    Update patient fields in MongoDB
-    :param patient_id: id of the patient (string or ObjectId)
-    :param data: dict of fields to update
-    :return: True if update succeeded, False if not
-    """
+    # Update patient fields in MongoDB
     document = {
         "first_name": data.get("first_name"),
         "last_name": data.get("last_name"),

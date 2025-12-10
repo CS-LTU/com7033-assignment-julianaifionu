@@ -68,6 +68,11 @@ flask --app app run --debug
 
 Access it at 👉 http://127.0.0.1:3000
 
+## Run all Tests
+```bash
+pytest -q
+```
+
 ## License
 
 This project is released under the MIT License — free to use, modify, and distribute with attribution.
