@@ -9,7 +9,7 @@ from flask_wtf import CSRFProtect
 from routes import admin_bp, auth_bp, clinician_bp
 
 app = Flask(__name__)
-# app.secret_key = Config.SECRET_KEY
+
 # Secret key for signing/encrypting session cookie
 app.config["SECRET_KEY"] = Config.SECRET_KEY
 
