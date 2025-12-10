@@ -17,7 +17,7 @@ from models.users.user_model import (
 )
 from utils.decorators import admin_required, login_required
 from utils.services_logging import log_action
-from utils.validations import validate_registration_form
+from models.auth.validations import validate_registration_form
 from models.auth.activation import generate_activation_token
 from models.admin.admin_models import get_user_admin_stats, get_all_users, search_user
 from models.patients.mongo_models import get_all_patients, get_patient_admin_stats
@@ -25,7 +25,7 @@ from models.auth.auth import get_user_by_id
 
 admin_bp = Blueprint("admin", __name__)
 
-
+# Admin routes
 @admin_bp.route("/dashboard", methods=["GET"])
 @login_required
 @admin_required
