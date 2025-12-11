@@ -2,6 +2,7 @@ from models.db_sqlite import get_db
 
 
 def get_user_admin_stats():
+    # Get users stats for admin dashboard view
     conn = get_db()
     cur = conn.cursor()
 
@@ -22,6 +23,7 @@ def get_user_admin_stats():
 
 
 def get_all_users():
+    # Fetch all users from the database for admin management
     conn = get_db()
     cur = conn.cursor()
 
@@ -49,6 +51,7 @@ def get_all_users():
 
 
 def search_user(search_query=None):
+    # Search for user by full_name or username
     if search_query:
         conn = get_db()
         cur = conn.cursor()

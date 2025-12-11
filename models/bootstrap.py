@@ -31,7 +31,11 @@ def bootstrap_once():
                 "INSERT INTO roles (name, description) VALUES (?, ?)",
                 ("clinician", "Healthcare professional who manages patients"),
             )
-            print("Seeded roles: admin, clinician")
+            cur.execute(
+                "INSERT INTO roles (name, description) VALUES (?, ?)",
+                ("auditor", "Auditor who audits logs"),
+            )
+            print("Seeded roles: admin, clinician, auditor")
 
         # Check if an admin user already exists
         cur.execute(

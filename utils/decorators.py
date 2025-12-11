@@ -45,6 +45,18 @@ def clinician_required(f):
 
     return wrapper
 
+def auditor_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        role_name = session.get("role_name")
+
+        if role_name != "auditor":
+            flash("auditor access required.", "danger")
+            return redirect(url_for("index"))
+        return f(*args, **kwargs)
+
+    return wrapper
+
 
 def archived_check(f):
     @wraps(f)

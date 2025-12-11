@@ -23,7 +23,7 @@
 						value="{{ search_query }}"
 						id="searchInput"
 						class="form-control border-start-0"
-						placeholder="Search by first or last name..."
+						placeholder="Search by full name or username..."
 					/>
 					<button
 						type="button"
@@ -42,8 +42,6 @@
 						<th>User</th>
 						<th>Role</th>
 						<th>Activation Status</th>
-						<th>Created</th>
-						<th>Info</th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -62,7 +60,6 @@
 							</a>
 						</td>
 						<td class="text-muted small">
-							<i class="bi bi-briefcase-fill me-1 text-secondary"></i>
 							{{ u["role_name"]|capitalize or "N/A" }}
 						</td>
 						<td>
@@ -76,26 +73,7 @@
 							</span>
 							{% endif %}
 						</td>
-						<td class="small text-muted">
-							<i class="bi bi-calendar-event me-1"></i>
-							{{ u["user_created_at"] | humanize_date }}
-						</td>
-						<td>
-							{% if u["is_archived"] %}
-							<span class="badge bg-secondary">
-								<i class="bi bi-dash-circle me-1"></i> Archived
-							</span>
-							{% elif u["is_active"] and not u["is_archived"]%}
-							<span class="badge bg-success">
-								<i class="bi bi-check-circle me-1"></i> Active
-							</span>
-							{% else %}
-							<span class="badge bg-secondary">
-								<i class="bi bi-dash-circle me-1"></i> Inactive
-							</span>
-							{% endif %}
-						</td>
-						<td class="text-end">
+						<td class="">
 							<a
 								href="{{ url_for('admin.view_user', user_id=u['user_id']) }}"
 								class="btn btn-sm btn-outline-primary"

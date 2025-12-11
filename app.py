@@ -6,7 +6,7 @@ from models.bootstrap import bootstrap_once
 from utils.decorators import login_required
 from utils.current_user import get_current_user
 from flask_wtf import CSRFProtect
-from routes import admin_bp, auth_bp, clinician_bp
+from routes import admin_bp, auth_bp, clinician_bp, auditor_bp
 
 app = Flask(__name__)
 
@@ -28,6 +28,7 @@ csrf = CSRFProtect(app)
 app.register_blueprint(admin_bp, url_prefix="/admin")
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(clinician_bp, url_prefix="/clinicians")
+app.register_blueprint(auditor_bp, url_prefix="/auditor")
 
 bootstrap_once()
 
@@ -57,7 +58,7 @@ def humanize_date(iso_string: str) -> str:
     Converts ISO 8601 string to human-readable dates format.
     """
     dt = datetime.fromisoformat(iso_string)
-    return dt.strftime("%d %b %Y, %I:%M %p")
+    return dt.strftime("%d %b %Y")
 
 
 @app.context_processor
@@ -85,6 +86,9 @@ def index():
 
     if current_user and current_user["role_name"] == "clinician":
         return redirect(url_for("clinician.dashboard"))
+    
+    if current_user and current_user["role_name"] == "auditor":
+        return redirect(url_for("auditor.dashboard"))
     return render_template("errors/404.html"), 404
 
 
