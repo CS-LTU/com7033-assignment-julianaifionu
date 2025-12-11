@@ -17,7 +17,7 @@ def validate_registration_form(username, full_name, role_name):
     # Full name format validation
     if not Config.FULLNAME_PATTERN.fullmatch(full_name):
         raise ValueError(
-            "Full name is invalid."
+            "Full name is invalid. Must contain atleast 2 separate names"
         )
 
     # Check that role exists

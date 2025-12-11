@@ -86,7 +86,7 @@ For development or testing, you may keep the default admin credentials or modify
 python app.py
 ```
 
-Access it at 👉 http://127.0.0.1:3000
+Access it at 👉 http://localhost:3000/
 
 ## Run all Tests
 
@@ -126,13 +126,12 @@ pytest -q
 
 **Collection:** `logs`
 
-| Field     | Type     | Description                                  |
-| --------- | -------- | -------------------------------------------- |
-| \_id      | ObjectId | Primary key                                  |
-| action    | string   | Description of the action taken              |
-| action_by | int      | User ID action taker from SQLite users table |
-| details   | object   | Optional metadata about the action           |
-| ts        | datetime | Timestamp of the logged event                |
+| Field   | Type     | Description                     |
+| ------- | -------- | ------------------------------- |
+| \_id    | ObjectId | Primary key                     |
+| action  | string   | Description of the action taken |
+| details | object   | Metadata about the action       |
+| ts      | datetime | Timestamp of the logged event   |
 
 ## License
 

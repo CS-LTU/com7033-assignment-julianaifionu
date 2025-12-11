@@ -23,47 +23,47 @@
 		>
 			<span class="navbar-toggler-icon"></span>
 		</button>
+
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="navbar-nav ms-auto align-items-center">
 				{% if username and role_name %}
 				<li class="nav-item">
-					<span class="badge bg-warning text-dark"
-						><i class="bi bi-shield-lock me-1"></i> {{role_name |
-						capitalize}}</span
-					>
+					<span class="badge bg-warning text-dark">
+						<i class="bi bi-shield-lock me-1"></i> {{role_name | capitalize}}
+					</span>
 				</li>
 				{% if role_name == "clinician" %}
 				<li class="nav-item">
 					<a
-						class="nav-link text-white d-flex align-items-center"
+						class="nav-link d-flex align-items-center"
 						href="{{ url_for('clinician.create_patient_get') }}"
 					>
-						<i class="bi bi-person-plus me-1"></i> New Patient
+						New Patient
 					</a>
 				</li>
 				<li class="nav-item">
 					<a
-						class="nav-link text-white d-flex align-items-center"
+						class="nav-link d-flex align-items-center"
 						href="{{ url_for('clinician.view_patients') }}"
 					>
-						<i class="bi bi-person-badge me-1"></i> Patients
+						Patients
 					</a>
 				</li>
 				{% endif %} {% if role_name == "admin" %}
 				<li class="nav-item">
 					<a
-						class="nav-link text-white d-flex align-items-center"
+						class="nav-link d-flex align-items-center"
 						href="{{ url_for('admin.create_user_get') }}"
 					>
-						<i class="bi bi-person-badge me-1"></i> New User
+						New User
 					</a>
 				</li>
 				<li class="nav-item">
 					<a
-						class="nav-link text-white d-flex align-items-center"
+						class="nav-link d-flex align-items-center"
 						href="{{ url_for('admin.view_users') }}"
 					>
-						<i class="bi bi-person-badge me-1"></i> Users
+						Users
 					</a>
 				</li>
 				{% endif %}
@@ -82,10 +82,12 @@
 						</button>
 					</form>
 				</li>
-
 				{% else %}
 				<li class="nav-item">
-					<a class="nav-link text-white" href="{{ url_for('auth.login_get') }}">
+					<a
+						class="nav-link d-flex align-items-center"
+						href="{{ url_for('auth.login_get') }}"
+					>
 						<i class="bi bi-box-arrow-in-right me-1"></i> Login
 					</a>
 				</li>

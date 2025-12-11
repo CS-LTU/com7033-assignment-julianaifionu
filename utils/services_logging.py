@@ -7,9 +7,10 @@ _mdb = _client[Config.MONGO_DB]
 logs_collection = _mdb[Config.MONGO_LOGS_COL]
 
 
-def log_action(action, details=None):
+def log_action(action, user_id, details=None):
     doc = {
         "action": action,
+        "user_id": user_id,
         "details": details or {},
         "ts": utc_now(),
     }

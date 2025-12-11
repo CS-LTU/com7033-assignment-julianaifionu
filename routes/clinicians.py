@@ -52,9 +52,9 @@ def create_patient_post():
         patient_id = create_patient(user_id, request.form)
         log_action(
             "NEW PATIENT CREATED",
+            user_id,
             {
-                "patient_id": patient_id,
-                "action_by": user_id,
+                "action_on": patient_id,
                 "action_at": utc_now(),
             },
         )
@@ -109,9 +109,9 @@ def edit_patient_post(patient_id):
 
         log_action(
             "PATIENT UPDATED",
+            user_id,
             {
-                "patient_id": patient_id,
-                "action_by": user_id,
+                "action_on": patient_id,
                 "action_at": utc_now(),
             },
         )
@@ -166,9 +166,9 @@ def delete_patient_post(patient_id):
 
         log_action(
             "PATIENT DELETED",
+            user_id,
             {
-                "patient_id": patient_id,
-                "action_by": user_id,
+                "action_on": patient_id,
                 "action_at": utc_now(),
             },
         )

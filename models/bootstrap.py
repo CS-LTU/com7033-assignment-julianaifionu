@@ -85,8 +85,9 @@ def bootstrap_once():
 
             log_action(
                 action="REGISTER_ADMIN",
+                user_id=admin_id,
                 details={
-                    "action_by": "system_initializer",
+                    "action_on": admin_id,
                     "action_at": utc_now(),
                 },
             )
@@ -96,8 +97,9 @@ def bootstrap_once():
                 seed_stroke_dataset(admin_id)
                 log_action(
                     action="PATIENT DATA SEEDED",
+                    user_id=admin_id,
                     details={
-                        "action_by": "system_initializer",
+                        "action_on": admin_id,
                         "action_at": utc_now(),
                     },
                 )

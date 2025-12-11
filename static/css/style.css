@@ -38,6 +38,21 @@ a {
 	cursor: pointer;
 }
 
+.navbar-nav .nav-link,
+.navbar-brand {
+	color: #ffffff;
+	text-decoration: none;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	cursor: pointer;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-brand:hover {
+	text-decoration: underline;
+	transform: scale(1.05);
+}
+
 /* Patients */
 .view_patient.card strong {
 	color: #2f2f2f;

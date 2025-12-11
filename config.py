@@ -9,7 +9,7 @@ class Config:
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
     BASE_DIR = os.getcwd()
-    DB_PATH = os.path.join(BASE_DIR, "stroke_tracker.db")
+    DB_PATH = os.path.join(BASE_DIR, "healthcare_system.db")
     DATASET_PATH = os.path.join(BASE_DIR, "dataset")
     USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
     FULLNAME_PATTERN = re.compile(r"^[A-Za-z]+(?:[ '-][A-Za-z]+)+$")
@@ -27,6 +27,6 @@ class Config:
 
     # Mongo
     MONGO_URI = os.environ.get("MONGO_URI")
-    MONGO_DB = "stroke_tracker_db"
+    MONGO_DB = "healthcare_system_db"
     MONGO_LOGS_COL = "logs"
     MONGO_PATIENTS_COL = "patients"

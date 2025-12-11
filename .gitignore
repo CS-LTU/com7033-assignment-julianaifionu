@@ -17,5 +17,5 @@ Thumbs.db
 .pytest_cache
 
 # database
-stroke_tracker.db
+healthcare_system.db
 models/seeds

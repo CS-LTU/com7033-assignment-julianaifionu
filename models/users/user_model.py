@@ -16,13 +16,14 @@ def create_user(username, full_name, role_name, db=None):
 
     role_id = row["id"]
     time = utc_now()
+    normalized_full_name = full_name.title()
 
     cur.execute(
         """
         INSERT INTO users (username, full_name, password_hash, role_id, is_active, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (username, full_name, None, role_id, 0, time),
+        (username, normalized_full_name, None, role_id, 0, time),
     )
 
     new_user_id = cur.lastrowid

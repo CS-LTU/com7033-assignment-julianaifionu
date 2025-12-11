@@ -10,6 +10,7 @@ from routes import admin_bp, auth_bp, clinician_bp
 
 app = Flask(__name__)
 
+
 # Secret key for signing/encrypting session cookie
 app.config["SECRET_KEY"] = Config.SECRET_KEY
 

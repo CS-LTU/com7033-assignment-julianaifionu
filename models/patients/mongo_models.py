@@ -47,10 +47,13 @@ def create_patient(clinician_id, data, collection=None):
     collection = collection or patients_collection
 
     age = dob_to_age(data["date_of_birth"])
+    normalize_first_name = data.get("first_name").title()
+    normalize_last_name = data.get("last_name").title()
+    
     patient = {
         "_id": ObjectId(),
-        "first_name": data.get("first_name"),
-        "last_name": data.get("last_name"),
+        "first_name": normalize_first_name,
+        "last_name": normalize_last_name,
         "gender": data.get("gender"),
         "age": int(age),
         "hypertension": int(data.get("hypertension")),
@@ -236,15 +239,15 @@ def update_patient(patient_id, data, clinician_id):
         "last_name": data.get("last_name"),
         "gender": data.get("gender"),
         "age": int(data.get("age", 0)),
-        "hypertension": bool(data.get("hypertension")),
-        "heart_disease": bool(data.get("heart_disease")),
+        "hypertension": int(data.get("hypertension")),
+        "heart_disease": int(data.get("heart_disease")),
         "ever_married": data.get("ever_married"),
         "work_type": data.get("work_type"),
         "residence_type": data.get("residence_type"),
         "avg_glucose_level": float(data.get("avg_glucose_level", 0)),
         "bmi": float(data.get("bmi", 0)) if data.get("bmi") not in ["", None] else None,
         "smoking_status": data.get("smoking_status"),
-        "stroke": bool(data.get("stroke")),
+        "stroke": int(data.get("stroke")),
         "updated_by": clinician_id,
         "updated_at": utc_now(),
     }

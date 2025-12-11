@@ -54,8 +54,9 @@ def login_post():
 
         log_action(
             "USER LOGIN",
+            full_user["id"],
             {
-                "action_by": full_user["id"],
+                "action_on": full_user["id"],
                 "action_at": utc_now(),
             },
         )
@@ -103,8 +104,9 @@ def activate_account_post(token):
 
         log_action(
             "ACCOUNT ACTIVATED",
+            user_id,
             {
-                "action_by": user_id,
+                "action_on": user_id,
                 "action_at": used_at_time,
             },
         )

@@ -25,6 +25,7 @@ from models.auth.auth import get_user_by_id
 
 admin_bp = Blueprint("admin", __name__)
 
+
 # Admin routes
 @admin_bp.route("/dashboard", methods=["GET"])
 @login_required
@@ -66,9 +67,9 @@ def create_user_post():
 
         log_action(
             "INVITE_USER",
+            session.get("user_id"),
             {
-                "new_user_id": new_user_id,
-                "action_by": session.get("user_id"),
+                "action_on": new_user_id,
                 "action_at": utc_now(),
             },
         )
@@ -160,8 +161,9 @@ def edit_user_post(user_id):
         update_user(user_id, request.form)
         log_action(
             "USER UPDATED",
+            session.get("user_id"),
             {
-                "action_by": session.get("user_id"),
+                "action_on": user_id,
                 "action_at": utc_now(),
             },
         )
@@ -178,11 +180,11 @@ def edit_user_post(user_id):
 def archive_user(user_id):
     try:
         archive_user_service(user_id)
-        user_session_id = session.get("user_id")
         log_action(
             "USER ARCHIVED",
+            session.get("user_id"),
             {
-                "action_by": user_session_id,
+                "action_on": user_id,
                 "action_at": utc_now(),
             },
         )
