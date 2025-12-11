@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
 from bson import ObjectId
-from models.patients.mongo_models import create_patient, dob_to_age
+from models.patients.mongo_models import create_patient
+from models.patients.helpers import dob_to_age
+from services.decrypt_doc import decrypt_patient_doc
 
 
 def test_create_patient_with_mock():
@@ -42,7 +44,13 @@ def test_create_patient_with_mock():
     assert inserted_doc["last_name"] == "Smith"
     assert inserted_doc["created_by"] == clinician_id
     assert inserted_doc["age"] == dob_to_age("1990-08-25")
-    assert inserted_doc["bmi"] == 22.5
-    assert inserted_doc["stroke"] == 0
     assert inserted_doc["created_at"] is not None
     assert inserted_doc["updated_at"] is None
+    
+    # assert patient medical e.g stroke is encrypted
+    assert isinstance(inserted_doc["stroke"], dict)   # has {'iv' and 'ct'} encryption dict
+
+    # assert on decrypted values
+    decrypted_doc = decrypt_patient_doc(inserted_doc)
+    assert decrypted_doc["stroke"] == 0
+

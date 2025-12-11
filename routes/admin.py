@@ -113,12 +113,9 @@ def view_users():
 def view_user(user_id):
     role_name = session.get("role_name")
     user = get_user_by_id(user_id)
-    patients = get_all_patients()
-
     return render_template(
         "admin/users/show.html",
         user=user,
-        patients=patients,
         role_name=role_name,
     )
 

@@ -30,3 +30,12 @@ class Config:
     MONGO_DB = "healthcare_system_db"
     MONGO_LOGS_COL = "logs"
     MONGO_PATIENTS_COL = "patients"
+    
+    # Fields to encrypt/decrypt
+    MEDICAL_FIELDS = [
+        "hypertension",
+        "heart_disease",
+        "stroke",
+        "bmi",
+        "avg_glucose_level",
+    ]
