@@ -31,15 +31,15 @@ administrator in a hospital setting.
 
 ## Tech Stack
 
-| Category           | Technology                                                                          |
-| ------------------ | ----------------------------------------------------------------------------------- |
-| **Framework**      | Flask (Python 3.11)                                                                 |
-| **Frontend**       | HTML5, Bootstrap 5, Jinja2 Templates                                                |
-| **Databases**      | SQLite (auth), MongoDB (patients record)                                            |
-| **Authentication** | session, bcrypt, CSRF                                                               |
-| **Security**       | CSRF, XSS prevention, bcrypt, input validation, RBAC, environment-based secret keys |
-| **Environment**    | Python Virtual env (`venv`)                                                         |
-| **Dev Tools**      | Black (formatter), Pytest & Unittest (testing)                                      |
+| Category           | Technology                                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Framework**      | Flask (Python 3.11)                                                                                              |
+| **Frontend**       | HTML5, Bootstrap 5, Jinja2 Templates                                                                             |
+| **Databases**      | SQLite (auth), MongoDB (patients record)                                                                         |
+| **Authentication** | session, bcrypt, CSRF                                                                                            |
+| **Security**       | CSRF, XSS prevention, bcrypt, AES-256, Encryption at rest, input validation, RBAC, environment-based secret keys |
+| **Environment**    | Python Virtual env (`venv`)                                                                                      |
+| **Dev Tools**      | Black (formatter), Pytest & Unittest (testing)                                                                   |
 
 ## Installation & Setup
 
