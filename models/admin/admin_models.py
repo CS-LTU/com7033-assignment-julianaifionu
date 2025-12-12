@@ -15,11 +15,8 @@ def get_user_admin_stats():
     cur.execute("SELECT COUNT(*) FROM users WHERE is_active = 0")
     inactive = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(*) FROM users WHERE is_archived= 1")
-    archive = cur.fetchone()[0]
-
     conn.close()
-    return {"total": total, "active": active, "inactive": inactive, "archived": archive}
+    return {"total": total, "active": active, "inactive": inactive}
 
 
 def get_all_users():
@@ -34,7 +31,6 @@ def get_all_users():
 						users.username,
 						users.full_name,
 						users.is_active,
-						users.is_archived,
 						users.created_at AS user_created_at,
 						roles.name AS role_name
 				FROM users
@@ -64,7 +60,6 @@ def search_user(search_query=None):
 								users.username,
 								users.full_name,
 								users.is_active,
-								users.is_archived,
 								users.created_at AS user_created_at,
 								roles.name AS role_name
 						FROM users

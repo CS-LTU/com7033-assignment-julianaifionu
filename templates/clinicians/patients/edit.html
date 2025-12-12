@@ -6,7 +6,7 @@
 		<h3 class="mb-3 text-center">Edit Patient</h3>
 		<form action="{{ url_for('clinician.edit_patient_post', patient_id=patient.id) }}" method="POST">
 			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-			<h5 class="text-secondary mb-3">Demographics</h5>
+			<h5 class="text-secondary mb-3">Demographic Information</h5>
 			<div class="row">
 				<div class="col-md-6 mb-3">
 					<label class="form-label">First Name</label>
@@ -31,7 +31,7 @@
 				</div>
 			</div>
 			<hr class="my-4">
-			<h5 class="text-secondary mb-2">patient</h5>
+			<h5 class="text-secondary mb-2">Lifestyle</h5>
 			<div class="row">
 				<div class="col-md-6 mb-3">
 					<label class="form-label">Ever Married</label>
@@ -67,7 +67,7 @@
 				</div>
 			</div>
 			<hr class="my-4">
-			<h5 class="text-secondary mb-2">patient History</h5>
+			<h5 class="text-secondary mb-2">Medical History</h5>
 			<div class="row">
 				<div class="col-md-4 mb-3">
 					<label class="form-label">Hypertension</label>
@@ -84,7 +84,7 @@
 					</select>
 				</div>
 				<div class="col-md-4 mb-3">
-					<label class="form-label">Stroke History</label>
+					<label class="form-label">Stroke Status</label>
 					<select name="stroke" class="form-select">
 						<option value="0" {% if patient.stroke == 0 %}selected{% endif %}>No</option>
 						<option value="1" {% if patient.stroke == 1 %}selected{% endif %}>Yes</option>

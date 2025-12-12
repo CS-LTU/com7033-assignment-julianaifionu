@@ -31,3 +31,16 @@ def dob_to_age(dob_str, date_format="%Y-%m-%d"):
         age -= 1
 
     return age
+
+
+def validate_form_presence(data):
+    """
+    Validates that all fields in the form data are present and not empty.
+    """
+    errors = {}
+
+    for field, value in data.items():
+        if value is None or str(value).strip() == "":
+            errors[field] = "This field is required."
+
+    return len(errors) == 0, errors

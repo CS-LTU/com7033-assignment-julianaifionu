@@ -47,18 +47,13 @@ def get_all_user_roles():
     return [row["name"] for row in rows] if rows else []
 
 
-def is_user_archived(user_id):
-    # Check if a specific user is archived; raises an error if the user does not exist
-    user = get_user_by_id(user_id)
-    if not user:
-        raise ValueError("User not found.")
-    return user["is_archived"]
-
-
 def update_user(user_id, data):
     # Update a user's full name and username based on the provided user ID
     username = data.get("username")
     full_name = data.get("full_name")
+    
+    if not username or not full_name:
+        raise ValueError("Username and full name are required.")
 
     conn = get_db()
     cur = conn.cursor()
@@ -75,32 +70,33 @@ def update_user(user_id, data):
     conn.close()
 
 
-def archive_user_service(user_id):
+def delete_user_service(user_id):
     """
-    Archive a user by setting is_archived to 1 and recording the archive timestamp;
-    prevents archiving admin accounts or users already archived
+    Deletes a user from the database; prevents deleting admin accounts
     """
     user = get_user_by_id(user_id)
 
-    if user["role_name"] == "admin":
-        raise ValueError("Can not archive admin account.")
+    # User must exist
+    if not user:
+        raise ValueError("User does not exist.")
 
-    archived = is_user_archived(user_id)
-
-    if archived:
-        raise ValueError("User is already archived.")
+    # Prevent deleting admin accounts
+    if user["role_name"].lower() == "admin":
+        raise ValueError("Cannot delete admin account.")
 
     conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
         """
-			UPDATE users
-			SET is_archived = 1, archived_at = ?
-			WHERE id = ?
-			""",
-        (utc_now(), user_id),
+        DELETE FROM users
+        WHERE id = ?
+        """,
+        (user_id,),
     )
 
     conn.commit()
+    deleted = cur.rowcount == 1
     conn.close()
+
+    return deleted

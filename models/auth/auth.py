@@ -128,7 +128,7 @@ def get_user_by_id(user_id: int) -> dict | None:
 
     row = cur.fetchone()
     conn.close()
-    return row
+    return row if row else None
 
 
 

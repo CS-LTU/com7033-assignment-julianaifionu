@@ -56,22 +56,3 @@ def auditor_required(f):
         return f(*args, **kwargs)
 
     return wrapper
-
-
-def archived_check(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        user = get_current_user()
-
-        if not user:
-            flash("Please login.", "warning")
-            return redirect(url_for("auth.login_get"))
-
-        if user["is_archived"]:
-            session.clear()
-            flash("Your account has been archived. Contact admin.", "danger")
-            return redirect(url_for("auth.login_get"))
-
-        return f(*args, **kwargs)
-
-    return wrapper

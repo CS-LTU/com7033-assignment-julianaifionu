@@ -60,13 +60,13 @@ function showStep(step) {
 }
 
 function nextStep() {
+	// Step 1: Demographics
 	if (currentStep === 1) {
-		// validate demographic required fields
 		if (
-			!first_name.value ||
-			!last_name.value ||
-			!date_of_birth.value ||
-			!gender.value
+			!first_name.value.trim() ||
+			!last_name.value.trim() ||
+			!date_of_birth.value.trim() ||
+			!gender.value.trim()
 		) {
 			showJsFlash(
 				'Please complete demographic information before continuing.',
@@ -76,9 +76,42 @@ function nextStep() {
 		}
 	}
 
-	if (currentStep < 4) currentStep++;
+	// Step 2: Medical info
+	if (currentStep === 2) {
+		if (
+			!ever_married.value.trim() ||
+			!work_type.value.trim() ||
+			!residence_type.value.trim() ||
+			!smoking_status.value.trim()
+		) {
+			showJsFlash(
+				'Please complete all lifestyle information fields before continuing.',
+				'danger'
+			);
+			return;
+		}
+	}
 
+	// Step 3: Medical
+	if (currentStep === 3) {
+		if (
+			!avg_glucose_level.value.trim() ||
+			!bmi.value.trim() ||
+			!stroke.value.trim() ||
+			!hypertension.value.trim() ||
+			!heart_disease.value.trim()
+		) {
+			showJsFlash(
+				'Please complete all health stats fields before continuing.',
+				'danger'
+			);
+			return;
+		}
+	}
+
+	if (currentStep < 4) currentStep++;
 	if (currentStep === 4) fillReview();
+
 	showStep(currentStep);
 }
 

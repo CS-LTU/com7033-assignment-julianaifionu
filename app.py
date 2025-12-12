@@ -5,6 +5,7 @@ from config import Config
 from models.bootstrap import bootstrap_once
 from utils.decorators import login_required
 from utils.current_user import get_current_user
+from models.auth.auth import get_user_by_id
 from flask_wtf import CSRFProtect
 from routes import admin_bp, auth_bp, clinician_bp, auditor_bp
 
@@ -32,10 +33,24 @@ app.register_blueprint(auditor_bp, url_prefix="/auditor")
 
 bootstrap_once()
 
-
+# Before request handlers to manage sessions and user validity
 @app.before_request
 def refresh_session():
     session.permanent = True
+
+# Ensure the logged-in user's account is still valid on every request
+@app.before_request
+def ensure_account_still_valid():
+    user_id = session.get("user_id")
+    if not user_id:
+        return
+
+    user = get_user_by_id(user_id)
+
+    # If the user record has been deleted, force logout
+    if not user:
+        session.clear()
+        return redirect(url_for("auth.login_get"))
 
 
 # Error 404 handler

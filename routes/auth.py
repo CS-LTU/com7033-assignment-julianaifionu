@@ -2,7 +2,6 @@ import sqlite3
 from utils.time_formatter import utc_now
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from models.auth.auth import authenticate_user, get_user_by_id
-from models.users.user_model import is_user_archived
 from utils.services_logging import log_action
 from models.auth.validations import validate_login_form, validate_activation_passwords
 from models.auth.activation import (
@@ -20,7 +19,7 @@ def login_get():
     if session.get("user_id"):
         return redirect(url_for("index"))
 
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", form_data={})
 
 
 @auth_bp.route("/login", methods=["POST"])
@@ -43,10 +42,6 @@ def login_post():
             flash("Please activate your account before continuing.", "info")
             return redirect(url_for("auth.activate_get"))
 
-        # Ensure user is not archived
-        if user and is_user_archived(user["id"]):
-            raise ValueError("This account is inactive. Contact admin.")
-
         full_user = get_user_by_id(user["id"])
         session["user_id"] = full_user["id"]
         session["role_name"] = full_user["role_name"]
@@ -66,7 +61,9 @@ def login_post():
 
     except ValueError as e:
         flash(str(e), "danger")
-        return redirect(url_for("auth.login_get"))
+        return render_template(
+            "auth/login.html", form_data={"username": username, "password": ""}
+        )
 
 
 @auth_bp.route("/logout", methods=["POST"])

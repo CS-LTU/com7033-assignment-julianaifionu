@@ -11,16 +11,15 @@ import sqlite3
 from utils.time_formatter import utc_now
 from models.users.user_model import (
     create_user,
-    is_user_archived,
     update_user,
-    archive_user_service,
+    delete_user_service,
 )
 from utils.decorators import admin_required, login_required
 from utils.services_logging import log_action
 from models.auth.validations import validate_registration_form
 from models.auth.activation import generate_activation_token
 from models.admin.admin_models import get_user_admin_stats, get_all_users, search_user
-from models.patients.mongo_models import get_all_patients, get_patient_admin_stats
+from models.patients.mongo_models import get_patient_admin_stats
 from models.auth.auth import get_user_by_id
 
 admin_bp = Blueprint("admin", __name__)
@@ -46,7 +45,7 @@ def dashboard():
 @admin_bp.route("/users/create", methods=["GET"])
 @admin_required
 def create_user_get():
-    return render_template("admin/users/create.html")
+    return render_template("admin/users/create.html", form_data={})
 
 
 @admin_bp.route("/users/create", methods=["POST"])
@@ -73,17 +72,30 @@ def create_user_post():
                 "action_at": utc_now(),
             },
         )
-
+        flash("User created successfully!", "success")
         return redirect(
             url_for("admin.activation_link", activation_link=activation_link)
         )
-
-    except sqlite3.Error as e:
-        flash(f"An error occurred", "danger")
-        return redirect(url_for("admin.create_user_get"))
     except ValueError as e:
         flash(str(e), "danger")
-        return redirect(url_for("admin.create_user_get"))
+        return render_template(
+            "admin/users/create.html",
+            form_data={
+                "username": username,
+                "full_name": full_name,
+                "role_name": role_name,
+            },
+        )
+    except sqlite3.Error as e:
+        flash(f"An error occurred", "danger")
+        return render_template(
+            "admin/users/create.html",
+            form_data={
+                "username": username,
+                "full_name": full_name,
+                "role_name": role_name,
+            },
+        )
 
 
 @admin_bp.route("/users/activation-link", methods=["GET"])
@@ -125,25 +137,24 @@ def view_user(user_id):
 @admin_required
 def edit_user_get(user_id):
     try:
-        is_archived = is_user_archived(user_id)
-        if is_archived:
-            raise ValueError("Cannot edit an archived user.")
-
-        role_name = session.get("role_name")
         user = get_user_by_id(user_id)
+
+        if user is None:
+            raise ValueError("User does not exist.")
+
+        if user["role_name"].lower() == "admin":
+            raise ValueError("Cannot edit admin account.")
 
         return render_template(
             "admin/users/edit.html",
             user=user,
-            role_name=role_name,
         )
-
-    except sqlite3.Error as e:
-        flash(f"An error occurred", "danger")
-        return redirect(url_for("admin.view_user", user_id=user_id))
     except ValueError as e:
         flash(f"{e}", "danger")
-        return redirect(url_for("admin.view_user", user_id=user_id))
+        return render_template("admin/users/edit.html", user=user)
+    except sqlite3.Error as e:
+        flash(f"An error occurred", "danger")
+        return render_template("admin/users/edit.html", user=user)
 
 
 @admin_bp.route("/users/<int:user_id>/edit", methods=["POST"])
@@ -151,9 +162,12 @@ def edit_user_get(user_id):
 @admin_required
 def edit_user_post(user_id):
     try:
-        is_archived = is_user_archived(user_id)
-        if is_archived:
-            raise ValueError("Cannot edit an archived user.")
+        user = get_user_by_id(user_id)
+        if user is None:
+            raise ValueError("User does not exist.")
+
+        if user["role_name"].lower() == "admin":
+            raise ValueError("Cannot edit admin account.")
 
         update_user(user_id, request.form)
         log_action(
@@ -166,41 +180,36 @@ def edit_user_post(user_id):
         )
         flash("User updated successfully!", "success")
         return redirect(url_for("admin.view_user", user_id=user_id))
+    except ValueError as e:
+        flash(str(e), "warning")
+        return render_template(
+            "admin/users/edit.html",
+            user=user,
+        )
     except (sqlite3.Error, Exception):
         flash(f"An error occured", "danger")
-        return redirect(url_for("admin.edit_user_get", user_id=user_id))
+        return render_template("admin/users/edit.html", user=user)
 
 
-@admin_bp.route("/users/<int:user_id>/archive", methods=["POST"])
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
 @login_required
 @admin_required
-def archive_user(user_id):
+def delete_user(user_id):
     try:
-        archive_user_service(user_id)
+        delete_user_service(user_id)
         log_action(
-            "USER ARCHIVED",
+            "USER DELETED",
             session.get("user_id"),
             {
                 "action_on": user_id,
                 "action_at": utc_now(),
             },
         )
-        flash("user has been archived.", "success")
-        return redirect(url_for("admin.view_user", user_id=user_id))
+        flash("User has been deleted successfully.", "success")
+        return redirect(url_for("admin.view_users"))
     except ValueError as e:
         flash(str(e), "warning")
         return redirect(url_for("admin.view_user", user_id=user_id))
     except (sqlite3.Error, Exception):
         flash(f"An error occurred!", "danger")
         return redirect(url_for("admin.view_user", user_id=user_id))
-
-
-@admin_bp.route("/patients", methods=["GET"])
-@login_required
-@admin_required
-def view_patients():
-    patients = get_all_patients()
-    return render_template(
-        "admin/patients/list.html",
-        patients=patients,
-    )

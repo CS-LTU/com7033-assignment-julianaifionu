@@ -9,13 +9,19 @@ administrator in a hospital setting.
 
 - Secure User Authentication
 
-- Patient Data Management (Demographics, Medical History, Lifestyle)
+- Secure Patient Data Management (Demographics, Medical History, Lifestyle)
 
 - Admin Dashboard for reviewing system users and users records
 
-- Clinician Dashboard for reviewing predictions and managing patient records
+- Clinician Dashboard for reviewing patients and managing patient records
 
 - Secure Session Handling & Input Validation
+
+- SQLite DB for user record and authentication
+
+- MongoDB for patient record management
+
+- CRUD on users and patients
 
 - Zero Trust Architecture and OWASP-aligned security practices
 
@@ -23,11 +29,11 @@ administrator in a hospital setting.
 
 #### The application follows a three-layered architecture aligned with SSDLC principles:
 
-| Layer                  | Description                                            | Security Controls                                                                                                                        |
-| ---------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Presentation Layer** | Flask HTML templates (Jinja2), forms, and Bootstrap UI | Input validation, CSRF protection                                                                                                        |
-| **Application Layer**  | Flask backend (business logic, RBAC, authentication)   | RBAC, session management, exception handling                                                                                             |
-| **Data Layer**         | SQLite (Auth), MongoDB (Patients Record)               | Encryption-at-rest (password, activation tokens), least privilege DB access, integrity checks, injection (SQL injection, XSS) prevention |
+| Layer                  | Description                                            | Security Controls                                                                                                                                |
+| ---------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Presentation Layer** | Flask HTML templates (Jinja2), forms, and Bootstrap UI | Input validation, CSRF protection, XSS prevention                                                                                                |
+| **Application Layer**  | Flask backend (business logic, RBAC, authentication)   | RBAC, session management, exception handling, patient record encryption at rest                                                                  |
+| **Data Layer**         | SQLite (Auth), MongoDB (Patients Record)               | Encryption-at-rest (password, activation tokens, patient medical records), least privilege DB access, integrity checks, SQL injection prevention |
 
 ## Tech Stack
 
@@ -59,7 +65,7 @@ python -m venv venv
 
 source venv/bin/activate # macOS/Linux
 
-venv\Scripts\activate # Windows
+source venv/Scripts/activate # Windows
 ```
 
 ### 3. Install Dependencies
@@ -75,9 +81,9 @@ pip install -r requirements.txt
 3. Update the following values:
 
 - **MONGO_URI** — your MongoDB connection string
-- **STROKE_APP_SECRET_KEY** — a secure, randomly generated secret key
+- **STROKE_APP_SECRET_KEY** — a secure, randomly generated secret key (hex (32 bytes)) or for testing purpose, you may use the default value
 
-For development or testing, you may keep the default admin credentials or modify them as needed:
+For development or testing, you may keep the default admin credentials and secret key or modify them as needed:
 
 ## Run the Application
 
@@ -132,6 +138,18 @@ pytest -q
 | action  | string   | Description of the action taken |
 | details | object   | Metadata about the action       |
 | ts      | datetime | Timestamp of the logged event   |
+
+## Issues
+
+If you find a bug or want to suggest an improvement:
+
+1. Go to the **Issues** tab of the repository.
+2. Click **New Issue**.
+3. Describe the problem clearly (what happened, expected behaviour, steps to reproduce).
+4. Add screenshots or logs if useful.
+5. Submit the issue.
+
+Your feedback helps improve the project!
 
 ## License
 

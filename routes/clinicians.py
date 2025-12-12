@@ -1,25 +1,24 @@
 import sqlite3
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from utils.time_formatter import utc_now
-from utils.decorators import login_required, clinician_required, archived_check
+from utils.decorators import login_required, clinician_required
 from models.auth.auth import get_user_by_id
 from utils.services_logging import log_action
 from models.patients.mongo_models import (
     create_patient,
     get_patient_clinician_stats,
-    get_all_patients,
     get_first_10_patients,
     delete_patient,
     update_patient,
     get_patient_by_id,
     search_patient,
 )
+from models.patients.helpers import validate_form_presence
 
 clinician_bp = Blueprint("clinician", __name__)
 
 
 @clinician_bp.route("/dashboard", methods=["GET"])
-@archived_check
 @login_required
 @clinician_required
 def dashboard():
@@ -34,7 +33,6 @@ def dashboard():
 
 
 @clinician_bp.route("/patients/new", methods=["GET"])
-@archived_check
 @login_required
 @clinician_required
 def create_patient_get():
@@ -42,13 +40,18 @@ def create_patient_get():
 
 
 @clinician_bp.route("/patients/new", methods=["POST"])
-@archived_check
 @login_required
 @clinician_required
 def create_patient_post():
     try:
         user_id = session.get("user_id")
         # Create patient in MongoDB
+        error = validate_form_presence(request.form)
+        if not error[0]:
+            raise ValueError(
+                f"All fields are required. Missing: {', '.join(error[1].keys())}"
+            )
+
         patient_id = create_patient(user_id, request.form)
         log_action(
             "NEW PATIENT CREATED",
@@ -70,7 +73,6 @@ def create_patient_post():
 
 
 @clinician_bp.route("/patients/<string:patient_id>/edit", methods=["GET"])
-@archived_check
 @login_required
 @clinician_required
 def edit_patient_get(patient_id):
@@ -86,16 +88,15 @@ def edit_patient_get(patient_id):
             patient=patient,
             role=role,
         )
-    except (sqlite3.Error, Exception):
-        flash(f"Unknown error occurred!", "danger")
-        return redirect(url_for("clinician.view_patient", patient_id=patient_id))
     except ValueError as e:
         flash(f"{e}", "danger")
-        return redirect(url_for("clinician.view_patient", patient_id=patient_id))
+        return redirect(url_for("clinician.view_patients"))
+    except (sqlite3.Error, Exception):
+        flash(f"Unknown error occurred!", "danger")
+        return redirect(url_for("clinician.view_patients"))
 
 
 @clinician_bp.route("/patients/<string:patient_id>/edit", methods=["POST"])
-@archived_check
 @login_required
 @clinician_required
 def edit_patient_post(patient_id):
@@ -105,6 +106,13 @@ def edit_patient_post(patient_id):
             raise ValueError("Cannot find patient.")
 
         user_id = session.get("user_id")
+
+        # Ensure all fields are present
+        error = validate_form_presence(request.form)
+        if not error[0]:
+            raise ValueError(
+                f"All fields are required. Missing: {', '.join(error[1].keys())}"
+            )
         update_patient(patient_id, request.form, user_id)
 
         log_action(
@@ -118,13 +126,23 @@ def edit_patient_post(patient_id):
 
         flash("Patient updated successfully!", "success")
         return redirect(url_for("clinician.view_patient", patient_id=patient_id))
+    except ValueError as e:
+        flash(str(e), "warning")
+        return render_template(
+            "clinicians/patients/edit.html",
+            patient=patient,
+            role=session.get("role_name"),
+        )
     except (sqlite3.Error, Exception) as e:
-        flash(f"Unknown error occurred!: {e}", "danger")
-        return redirect(url_for("clinician.edit_patient_get", patient_id=patient_id))
+        flash(f"An error occurred!: {e}", "danger")
+        return render_template(
+            "clinicians/patients/edit.html",
+            patient=patient,
+            role=session.get("role_name"),
+        )
 
 
 @clinician_bp.route("/patients/<string:patient_id>", methods=["GET"])
-@archived_check
 @login_required
 @clinician_required
 def view_patient(patient_id):
@@ -143,7 +161,6 @@ def view_patient(patient_id):
 
 
 @clinician_bp.route("/patients", methods=["GET"])
-@archived_check
 @login_required
 @clinician_required
 def view_patients():
@@ -156,7 +173,6 @@ def view_patients():
 
 
 @clinician_bp.route("/patients/<string:patient_id>/delete", methods=["POST"])
-@archived_check
 @login_required
 @clinician_required
 def delete_patient_post(patient_id):

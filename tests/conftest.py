@@ -33,8 +33,6 @@ def sqlite_test_db():
             full_name TEXT NOT NULL,
             password_hash TEXT,
             is_active BOOLEAN NOT NULL DEFAULT 0,
-            is_archived BOOLEAN NOT NULL DEFAULT 0,
-            archived_at TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT,
             FOREIGN KEY (role_id) REFERENCES roles(id)
