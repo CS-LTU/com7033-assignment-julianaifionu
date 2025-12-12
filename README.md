@@ -83,7 +83,7 @@ pip install -r requirements.txt
 - **MONGO_URI** — your MongoDB connection string
 - **STROKE_APP_SECRET_KEY** — a secure, randomly generated secret key (hex (32 bytes)) or for testing purpose, you may use the default value
 
-For development or testing, you may keep the default admin credentials and secret key or modify them as needed:
+NOTE: For development or testing, you may keep the default admin credentials and secret key or modify them as needed:
 
 ## Run the Application
 
@@ -93,6 +93,42 @@ python app.py
 ```
 
 Access it at 👉 http://localhost:3000/
+
+## UI Functionality Test
+
+The application has three main roles: **Admin**, **Clinician**, and **Auditor**. Below are the steps and expected functionalities for each role.
+
+---
+
+### Pre-requisite
+- Login as an admin (the admin account is seeded automatically when the app starts and SQLite tables are created).  
+- Use the admin credentials set in the environment variables (`ADMIN_USERNAME` and `ADMIN_PASSWORD`).
+
+---
+
+### 1. Admin User
+- Can **create new users** and assign roles (e.g., clinician, auditor).  
+- Can **invite users**.  
+- Can **delete users**, but **cannot delete the admin account**.  
+- Can **view user statistics**.  
+- Cannot perform any actions on patients (RBAC enforced).
+
+---
+
+### 2. Clinician User
+- Can **create patients**.  
+- Can **perform CRUD operations** on patient records.  
+- Patient records **store sensitive medical information encrypted at rest**.  
+- Can **view and analyze patient statistics**.  
+- Cannot perform any actions on users (RBAC enforced).
+
+---
+
+### 3. Auditor
+- Can **view system logs only**.  
+- Cannot perform any actions on users or patient records (RBAC enforced).
+
+
 
 ## Run all Tests
 
